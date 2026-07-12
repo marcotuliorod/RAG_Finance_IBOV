@@ -19,7 +19,11 @@ FEED_LABELS = {
     "informativos_colegiado": "Informativos do Colegiado",
 }
 
-_TEMPLATE = """<title>Painel de Ingestão — RAG Ibovespa</title>
+_TEMPLATE = """<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Painel de Ingestão — RAG Ibovespa</title>
 <style>
 :root {
   --bg: #eef0ea;
@@ -281,6 +285,8 @@ footer.page {
   padding-top: 1rem;
 }
 </style>
+</head>
+<body>
 <div class="wrap">
   <header class="page">
     <div>
@@ -454,6 +460,8 @@ for (const run of data.job_runs) {
 }
 runsCard.appendChild(table);
 </script>
+</body>
+</html>
 """
 
 

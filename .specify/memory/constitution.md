@@ -18,7 +18,9 @@ existente.
 
 ### Modelos em uso (planejado para a fase de geração)
 
-- Produção (geração padrão): claude-sonnet-5
+- Produção (geração padrão): claude-haiku-4-5-20251001 (trocado de
+  claude-sonnet-5 — decisão do usuário de priorizar custo/latência sobre
+  o roteamento por complexidade abaixo, que segue não implementado)
 - Roteamento por complexidade: claude-haiku-4-5 (classificação/extração,
   maioria do volume — esperado baixo, uso pessoal) · claude-sonnet-5
   (geração padrão) · claude-opus-4-8 (raciocínio multi-hop, casos raros)
@@ -76,12 +78,15 @@ existente.
   contornar um problema de empacotamento de terceiros. A técnica (decompor
   a resposta em alegações, julgar suporte no contexto) é a mesma do RAGAS;
   reavaliar o pacote se uma versão futura corrigir o import
-- Juiz: `claude-opus-4-8` — nunca o mesmo modelo do gerador (`claude-sonnet-5`,
-  ver Modelos em uso), evita identity bias
+- Juiz: `claude-opus-4-8` — nunca o mesmo modelo do gerador
+  (`claude-haiku-4-5-20251001`, ver Modelos em uso), evita identity bias
 - DeepEval (gate de CI/CD) ainda planejado, se/quando houver CI
-- Thresholds: faithfulness ≥ 0.85 (atingido: 0.899), answer relevancy ≥ 0.80
-  (atingido: 0.973), erro em valores numéricos citados < 1% (estrutural,
-  resolução por SQL)
+- Thresholds: faithfulness ≥ 0.85, answer relevancy ≥ 0.80, erro em valores
+  numéricos citados < 1% (estrutural, resolução por SQL). Medido com
+  `claude-sonnet-5`: 0.899/0.973 (gate passou). Após trocar o gerador para
+  `claude-haiku-4-5-20251001`: 0.767/0.963 — **faithfulness abaixo do
+  threshold**, aceito conscientemente pelo usuário em troca de
+  custo/latência menores (ver validation.md)
 - Golden dataset: 15 casos sobre o índice em
   `data/datasets/eval/golden_v1.json` (`scripts/run_eval.py` roda o gate)
 

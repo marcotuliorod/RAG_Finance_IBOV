@@ -11,8 +11,8 @@
 | Profundidade histórica (`ibov_daily_history`) | ≥ 10 anos | **Atingido** — 2.484 pregões, 2016-07-11 a 2026-07-10 |
 | Erro em valores numéricos citados | < 1% | **Estrutural** — resolução por SQL determinístico (`rag_b3.query.ibov_numeric`), 10/10 casos numéricos do golden dataset batendo com o dado real |
 | Citação de fonte rastreável | 100% | Estrutural — `ibov_daily_history.source` + `raw_payload` sempre presentes |
-| Faithfulness (LLM-as-judge, `claude-opus-4-8`) | ≥ 0.85 | **Atingido** — 0.899 sobre os 15 casos (`scripts/run_eval.py`; não usa `ragas`, ver plan.md Fase 1.4) |
-| Answer Relevancy (LLM-as-judge, `claude-opus-4-8`) | ≥ 0.80 | **Atingido** — 0.973 sobre os 15 casos |
+| Faithfulness (LLM-as-judge, `claude-opus-4-8`) | ≥ 0.85 | **Não atingido, aceito conscientemente** — 0.767 sobre os 15 casos com o gerador em `claude-haiku-4-5-20251001` (`scripts/run_eval.py`); era 0.899 com `claude-sonnet-5`. Causa: Haiku às vezes recusa/responde sem chamar ferramenta (memória paramétrica em vez de grounding real — ver plan.md Fase 1.4). Usuário optou por manter Haiku por custo/latência mesmo com essa regressão |
+| Answer Relevancy (LLM-as-judge, `claude-opus-4-8`) | ≥ 0.80 | **Atingido** — 0.963 sobre os 15 casos com `claude-haiku-4-5-20251001` (era 0.973 com `claude-sonnet-5`) |
 | Requisições HG Brasil/dia | ≤ 360 (margem de segurança sobre 400) | **Implementado e testado** — budget manager atômico |
 
 ## Golden Dataset — estrutura (CONCLUÍDO — 15 casos)
@@ -80,7 +80,10 @@ implicar tempo real.
 - [x] Agendamento produtivo dos jobs — `launchd` local (macOS), ativo desde
   2026-07-11 (ver plan.md Fase 2)
 - [x] Golden dataset (numérico) — concluído, 10/10 casos verificados
-- [x] Avaliação de faithfulness/answer relevancy — concluída, gate passou
-  (0.899/0.973, ver métricas acima e plan.md Fase 1.4)
+- [x] Avaliação de faithfulness/answer relevancy — concluída; gate passava
+  com Sonnet (0.899/0.973); após a troca do gerador para
+  `claude-haiku-4-5-20251001` o gate de faithfulness **falha**
+  (0.767/0.963), aceito conscientemente pelo usuário (ver métricas acima e
+  plan.md Fase 1.4)
 - [x] Observabilidade contínua — dashboard gerado sob demanda
   (`scripts/generate_dashboard.py`, ver plan.md Fase 2)

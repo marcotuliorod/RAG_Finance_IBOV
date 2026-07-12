@@ -94,8 +94,9 @@
 ### 4. Geração e avaliação (EM ANDAMENTO)
 
 - [x] Cliente Anthropic configurado (`ANTHROPIC_API_KEY`/`ANTHROPIC_MODEL`
-  em `.env`, modelo padrão `claude-sonnet-5` — consistente com
-  constitution.md)
+  em `.env`, modelo padrão `claude-haiku-4-5-20251001` — trocado de
+  `claude-sonnet-5` a pedido do usuário para priorizar custo/latência;
+  consistente com constitution.md)
 - [x] Módulo `src/rag_b3/generation/`: `prompt.py` (citação obrigatória,
   guardrails de domínio/RF-07), `tools.py` (9 ferramentas — 7 numéricas de
   `ibov_numeric` + 2 de `cvm_textual` — expostas ao Claude via tool-use, com
@@ -134,23 +135,36 @@
   Cloud); implementação própria em `src/rag_b3/eval/judge.py` com a mesma
   técnica de LLM-as-judge (decompõe a resposta em alegações, julga suporte
   no contexto retornado pelas ferramentas), juiz `claude-opus-4-8` (nunca o
-  mesmo modelo do gerador, `claude-sonnet-5` — evita identity bias, ver
-  constitution.md). Reavaliar `ragas` se uma versão futura corrigir o import
-  - Resultado: **faithfulness média 0.899** (≥ 0.85 ✓), **answer relevancy
-    média 0.973** (≥ 0.80 ✓) — gate passou
-  - Achado real e corrigido: caso 014 citava "a série começa em 11/07/2016"
-    sem essa informação vir de nenhuma ferramenta (o LLM "advinhava" de
-    memória) — faithfulness 0.50 nesse caso. Corrigido incluindo os limites
-    reais da série (`_series_bounds_hint` em `ibov_numeric.py`) nas
-    mensagens de `InsufficientDataError`; reconfirmado que a resposta passou
-    a citar a data vinda literalmente do contexto e faithfulness subiu para
-    1.0
+  mesmo modelo do gerador, `claude-haiku-4-5-20251001` — evita identity
+  bias, ver constitution.md). Reavaliar `ragas` se uma versão futura
+  corrigir o import
+  - Resultado original (gerador `claude-sonnet-5`): **faithfulness média
+    0.899** (≥ 0.85 ✓), **answer relevancy média 0.973** (≥ 0.80 ✓) — gate
+    passou
+  - Achado real e corrigido (ainda com Sonnet): caso 014 citava "a série
+    começa em 11/07/2016" sem essa informação vir de nenhuma ferramenta (o
+    LLM "advinhava" de memória) — faithfulness 0.50 nesse caso. Corrigido
+    incluindo os limites reais da série (`_series_bounds_hint` em
+    `ibov_numeric.py`) nas mensagens de `InsufficientDataError`; reconfirmado
+    que a resposta passou a citar a data vinda literalmente do contexto e
+    faithfulness subiu para 1.0
   - Ruído aceito (não é bug): o aviso "fonte pode ter até 1h de atraso"
     (regra 3 do prompt) é penalizado como "não sustentado pelo contexto" em
     quase todo caso numérico, porque é conhecimento do sistema, não dado
     retornado pela ferramenta — o juiz avalia só contra o JSON da
     ferramenta. Métrica um pouco conservadora por causa disso, não indica
     problema real
+  - **Rerun após trocar o gerador para `claude-haiku-4-5-20251001`
+    (2026-07-12, a pedido do usuário)**: faithfulness caiu para **0.767**
+    (abaixo do threshold 0.85 — **gate falhou**), relevancy 0.963 (ainda ✓).
+    Diferente do Sonnet, o Haiku às vezes responde/recusa sem chamar
+    nenhuma ferramenta mesmo quando a pergunta pede um dado factual (casos
+    011 e 014 do golden dataset — citou "a série começa em 11/07/2016" de
+    memória paramétrica, não do resultado de `_series_bounds_hint`, apesar
+    do fix acima já existir); também houve um erro de cálculo no caso 008
+    ("queda de ~26%" vs. ~21% real). Usuário optou explicitamente por
+    manter Haiku mesmo com essa regressão de qualidade, priorizando
+    custo/latência (ver validation.md e constitution.md)
 - [x] Gate de qualidade definido: thresholds de constitution.md (0.85/0.80)
   usados como critério de aceite em `scripts/run_eval.py` (exit code 1 se
   não passar) — rodar antes de qualquer mudança de prompt/retrieval ir
