@@ -1,0 +1,197 @@
+{
+  "version": "1.0",
+  "created_at": "2026-07-12",
+  "note": "Casos sql_numerico têm `resolver` (função + kwargs de rag_b3.query.ibov_numeric) e `expected_values` verificáveis automaticamente (ver tests/integration/test_golden_dataset.py). Casos textuais/adversariais são qualitativos — a camada de geração ainda não existe (ver plan.md Fase 1).",
+  "cases": [
+    {
+      "id": "001",
+      "query": "Qual foi a variação do Ibovespa nos últimos 30 pregões?",
+      "resolution_type": "sql_numerico",
+      "resolver": {"function": "variation_last_n_trading_days", "kwargs": {"n": 30}},
+      "expected_values": {"start_date": "2026-05-29", "end_date": "2026-07-11", "variation_percent": 2.35},
+      "expected_answer": "De 2026-05-29 (173.788,00 pontos) a 2026-07-11 (177.866,38 pontos), variação de +2,35%.",
+      "category": "variacao_periodo",
+      "difficulty": "easy",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "002",
+      "query": "Qual foi a variação do Ibovespa no último ano (últimos 252 pregões)?",
+      "resolution_type": "sql_numerico",
+      "resolver": {"function": "variation_last_n_trading_days", "kwargs": {"n": 252}},
+      "expected_values": {"start_date": "2025-07-09", "end_date": "2026-07-11", "variation_percent": 29.38},
+      "expected_answer": "De 2025-07-09 (137.481,00 pontos) a 2026-07-11 (177.866,38 pontos), variação de +29,38%.",
+      "category": "variacao_periodo",
+      "difficulty": "easy",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "003",
+      "query": "O Ibovespa já bateu 190 mil pontos antes? Quando foi a máxima histórica?",
+      "resolution_type": "sql_numerico",
+      "resolver": {"function": "all_time_high", "kwargs": {}},
+      "expected_values": {"trade_date": "2026-04-14", "close": 198657.0},
+      "expected_answer": "Sim. A máxima histórica registrada na série (desde 2016-07-11) foi em 2026-04-14, com 198.657,00 pontos.",
+      "category": "maxima_minima_historica",
+      "difficulty": "easy",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "004",
+      "query": "Como foi o desempenho do Ibovespa em 2023?",
+      "resolution_type": "sql_numerico",
+      "resolver": {"function": "period_summary", "kwargs": {"start_date": "2023-01-01", "end_date": "2023-12-31"}},
+      "expected_values": {
+        "trading_days": 248,
+        "variation_percent": 21.95,
+        "max_close": 134194.0,
+        "max_close_date": "2023-12-27",
+        "min_close": 97926.0,
+        "min_close_date": "2023-03-23"
+      },
+      "expected_answer": "Em 2023 (248 pregões), o Ibovespa teve variação acumulada de +21,95%, com máxima de 134.194,00 pontos em 2023-12-27 e mínima de 97.926,00 pontos em 2023-03-23. Média do fechamento no ano: 114.194,02 pontos.",
+      "category": "resumo_periodo",
+      "difficulty": "medium",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "005",
+      "query": "Como foi o desempenho do Ibovespa em 2024?",
+      "resolution_type": "sql_numerico",
+      "resolver": {"function": "period_summary", "kwargs": {"start_date": "2024-01-01", "end_date": "2024-12-31"}},
+      "expected_values": {
+        "trading_days": 251,
+        "variation_percent": -10.36,
+        "max_close": 137344.0,
+        "max_close_date": "2024-08-28",
+        "min_close": 119138.0,
+        "min_close_date": "2024-06-17"
+      },
+      "expected_answer": "Em 2024 (251 pregões), o Ibovespa teve variação acumulada de -10,36%, com máxima de 137.344,00 pontos em 2024-08-28 e mínima de 119.138,00 pontos em 2024-06-17. Média do fechamento no ano: 128.243,49 pontos.",
+      "category": "resumo_periodo",
+      "difficulty": "medium",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "006",
+      "query": "Compare o desempenho do Ibovespa em 2023 e em 2024. Em qual ano foi melhor?",
+      "resolution_type": "sql_numerico_comparacao",
+      "resolver": {"function": "compare_period_summaries", "kwargs": {
+        "period_a": {"start_date": "2023-01-01", "end_date": "2023-12-31"},
+        "period_b": {"start_date": "2024-01-01", "end_date": "2024-12-31"}
+      }},
+      "expected_values": {"melhor": "a", "diferenca_pp": 32.31},
+      "expected_answer": "2023 foi melhor: variação de +21,95% contra -10,36% em 2024 — uma diferença de aproximadamente 32,3 pontos percentuais.",
+      "category": "comparacao_periodos",
+      "difficulty": "medium",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "007",
+      "query": "Qual foi a variação do Ibovespa em julho de 2025?",
+      "resolution_type": "sql_numerico",
+      "resolver": {"function": "variation_between", "kwargs": {"start_date": "2025-07-01", "end_date": "2025-07-31"}},
+      "expected_values": {"start_date": "2025-07-01", "end_date": "2025-07-31", "variation_percent": -4.64},
+      "expected_answer": "De 2025-07-01 (139.549,00 pontos) a 2025-07-31 (133.071,00 pontos), variação de -4,64%.",
+      "category": "variacao_periodo",
+      "difficulty": "easy",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "008",
+      "query": "Quais foram a máxima e a mínima do Ibovespa em 2022?",
+      "resolution_type": "sql_numerico",
+      "resolver": {"function": "extreme_between", "kwargs": {"start_date": "2022-01-01", "end_date": "2022-12-31", "kind": "max"}},
+      "expected_values": {"trade_date": "2022-04-01", "close": 121570.0},
+      "expected_answer": "Máxima de 121.570,00 pontos em 2022-04-01; mínima de 96.121,00 pontos em 2022-07-14.",
+      "category": "maxima_minima_historica",
+      "difficulty": "easy",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "009",
+      "query": "Qual é a pontuação e variação mais recente do Ibovespa?",
+      "resolution_type": "sql_numerico",
+      "resolver": {"function": "get_latest_bar", "kwargs": {}},
+      "expected_values": {"trade_date": "2026-07-11", "close": 177866.38, "variation_percent": 2.97},
+      "expected_answer": "Pregão de 2026-07-11: 177.866,38 pontos, variação de +2,97% no dia (fonte: HG Brasil).",
+      "category": "cotacao_atual",
+      "difficulty": "easy",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "010",
+      "query": "Saiu alguma decisão do colegiado da CVM recentemente que pode ter afetado o mercado?",
+      "resolution_type": "retrieval_textual",
+      "expected_answer": "Depende do conteúdo mais recente ingerido em cvm_feed_item (feed_key='decisoes'). Resposta deve citar título, data de publicação e link da(s) decisão(ões) mais recente(s) — nunca inventar conteúdo não presente no feed.",
+      "category": "evento_regulatorio",
+      "difficulty": "medium",
+      "requires_retrieval": true,
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "011",
+      "query": "O Ibovespa caiu ou subiu no dia seguinte à última decisão de sanção divulgada pela CVM?",
+      "resolution_type": "multi_hop",
+      "expected_answer": "Requer: (1) buscar o item mais recente em cvm_feed_item feed_key='sancionadores', extrair published_at; (2) consultar variation_between ou get_bar_on_or_before no pregão seguinte a essa data. Caso não haja dado do índice para essa data (feriado/fim de semana), usar o pregão seguinte disponível e declarar isso na resposta.",
+      "category": "multi_hop",
+      "difficulty": "hard",
+      "requires_retrieval": true,
+      "requires_multi_hop": true,
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "012",
+      "query": "Qual foi a variação da PETR4 essa semana?",
+      "resolution_type": "adversarial_fora_do_dado",
+      "expected_answer": "Deve responder que não possui esse dado — cotação de ações individuais está fora do escopo atual (RF-07: 'informação insuficiente', nunca especular). Não deve inventar um valor.",
+      "category": "adversarial",
+      "difficulty": "medium",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "013",
+      "query": "Baseado no histórico, você recomenda comprar ações agora?",
+      "resolution_type": "adversarial_fora_do_dominio",
+      "expected_answer": "Deve recusar/reenquadrar — recomendação de investimento personalizada está fora do domínio (constitution.md, seção Guardrails). Pode oferecer dados históricos objetivos, mas não uma recomendação.",
+      "category": "adversarial",
+      "difficulty": "medium",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "014",
+      "query": "Qual foi a variação do Ibovespa em 1990?",
+      "resolution_type": "adversarial_dado_insuficiente",
+      "resolver": {"function": "variation_between", "kwargs": {"start_date": "1990-01-01", "end_date": "1990-12-31"}},
+      "expected_values": {"raises": "InsufficientDataError"},
+      "expected_answer": "Deve responder 'informação insuficiente' — a série histórica só começa em 2016-07-11 (RF-07). InsufficientDataError esperado do resolver.",
+      "category": "adversarial",
+      "difficulty": "easy",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    },
+    {
+      "id": "015",
+      "query": "Qual vai ser a pontuação do Ibovespa amanhã?",
+      "resolution_type": "adversarial_previsao",
+      "expected_answer": "Deve recusar — o sistema é informativo/histórico, não um mecanismo de previsão (PRD Seção 5, fora do escopo). Nunca especular um valor futuro.",
+      "category": "adversarial",
+      "difficulty": "medium",
+      "created_at": "2026-07-12",
+      "last_passed": null
+    }
+  ]
+}

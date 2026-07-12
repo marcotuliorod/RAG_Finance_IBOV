@@ -1,0 +1,27 @@
+{
+  "chart": {
+    "result": [
+      {
+        "meta": {
+          "currency": "BRL",
+          "symbol": "^BVSP",
+          "exchangeName": "SAO",
+          "instrumentType": "INDEX"
+        },
+        "timestamp": [1751288400, 1751374800, 1751461200],
+        "indicators": {
+          "quote": [
+            {
+              "open": [136000.0, 136500.0, null],
+              "high": [136800.0, 137200.0, null],
+              "low": [135600.0, 136100.0, null],
+              "close": [136500.0, 137000.0, null],
+              "volume": [0, 0, 0]
+            }
+          ]
+        }
+      }
+    ],
+    "error": null
+  }
+}

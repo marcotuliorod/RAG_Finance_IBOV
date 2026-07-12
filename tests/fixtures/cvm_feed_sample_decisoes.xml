@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+<channel>
+	<title>Decisões do Colegiado CVM</title>
+	<link>http://www.cvm.gov.br/index.html</link>
+	<description>Últimas Atas de Reunião do Colegiado publicadas</description>
+
+	<item>
+		<pubDate>Tue, 02 Jun 2026 18:01:00 -0300</pubDate>
+		<title><![CDATA[ATA DA REUNIÃO DO COLEGIADO Nº 27 DE 03.12.2025]]></title>
+		<description><![CDATA[<p>Tipo: Regulação</p><p>Ata divulgada no site em 02.06.2026.</p>]]></description>
+		<link>http://www.cvm.gov.br/decisoes/2025/20251203_R1.html</link>
+	</item>
+	<item>
+		<pubDate>Fri, 29 May 2026 16:27:37 -0300</pubDate>
+		<title><![CDATA[EXTRATOS DA ATA DA REUNIÃO DO COLEGIADO Nº 44 DE 02.12.2025]]></title>
+		<description><![CDATA[<p>Decisões referentes aos Procs. 19957.015727/2022-34.</p>]]></description>
+		<link>http://www.cvm.gov.br/decisoes/2025/20251202_R2.html</link>
+	</item>
+</channel>
+</rss>

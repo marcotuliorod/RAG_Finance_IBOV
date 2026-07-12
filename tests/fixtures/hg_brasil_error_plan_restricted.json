@@ -1,0 +1,10 @@
+{
+  "by": "symbol",
+  "valid_key": true,
+  "results": {
+    "error": true,
+    "message": "Esta consulta necessita do plano Member Premium ou superior."
+  },
+  "execution_time": 0.0,
+  "from_cache": true
+}

@@ -1,0 +1,9 @@
+{
+  "by": "hgbrasil.com",
+  "valid_key": false,
+  "errors": [
+    {"code": "INVALID_API_KEY", "message": "A chave de API informada é inválida.", "help": "https://hgbrasil.com/docs/guide/erros"}
+  ],
+  "execution_time": 5,
+  "from_cache": false
+}

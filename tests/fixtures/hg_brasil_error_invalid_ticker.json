@@ -1,0 +1,9 @@
+{
+  "by": "hgbrasil.com",
+  "valid_key": true,
+  "errors": [
+    {"code": "INVALID_TICKER", "message": "O ticker informado é inválido.", "help": "https://hgbrasil.com/docs/guide/erros"}
+  ],
+  "execution_time": 10,
+  "from_cache": false
+}

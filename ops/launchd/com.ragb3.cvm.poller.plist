@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.ragb3.cvm.poller</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/marcotuliorodgmail.com/Prj_RAG_Finance/ops/launchd/run_cvm_poller.sh</string>
+    </array>
+
+    <!-- Dispara a cada 30 min, todo dia/hora; a janela real (dias úteis,
+         08h-19h America/Sao_Paulo) é aplicada dentro do wrapper. -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Minute</key><integer>30</integer></dict>
+    </array>
+
+    <key>StandardOutPath</key>
+    <string>/Users/marcotuliorodgmail.com/Prj_RAG_Finance/logs/cvm_poller.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/marcotuliorodgmail.com/Prj_RAG_Finance/logs/cvm_poller.err.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

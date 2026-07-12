@@ -1,0 +1,22 @@
+{
+  "by": "hgbrasil.com",
+  "valid_key": true,
+  "results": {
+    "PETR4": {
+      "kind": "stock",
+      "symbol": "PETR4",
+      "name": "Petrobras PN",
+      "price": 38.42,
+      "change_percent": 1.25,
+      "change_price": 0.47,
+      "volume": 45231000,
+      "market_cap": 502000.0,
+      "currency": "BRL",
+      "region": "BR",
+      "market_time": "2026-07-10T18:05:00",
+      "updated_at": "2026-07-10T18:05:00"
+    }
+  },
+  "execution_time": 30,
+  "from_cache": false
+}

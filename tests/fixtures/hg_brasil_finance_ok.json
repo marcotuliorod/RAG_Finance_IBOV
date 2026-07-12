@@ -1,0 +1,21 @@
+{
+  "by": "hgbrasil.com",
+  "valid_key": true,
+  "results": {
+    "currencies": {
+      "USD": {"name": "Dólar Americano/Real Brasileiro", "buy": 5.32, "sell": 5.33, "variation": 0.12}
+    },
+    "stocks": {
+      "IBOVESPA": {"points": 132456.78, "variation": 0.85},
+      "IFIX": {"points": 3210.5, "variation": -0.12}
+    },
+    "bitcoin": {
+      "BLOCKCHAIN_INFO": {"last": 350000.0}
+    },
+    "taxes": [
+      {"date": "2026-07-13", "cdi": 14.25, "selic": 14.25, "daily_factor": 0.0}
+    ]
+  },
+  "execution_time": 42,
+  "from_cache": false
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+<channel>
+	<title>Feed malformado (teste)</title>
+	<item>
+		<pubDate>Tue, 02 Jun 2026 18:01:00 -0300</pubDate>
+		<title>Item antes da quebra</title>
+		<link>http://www.cvm.gov.br/exemplo/1.html</link>
+	</item>
+	<item>
+		<title>Item com tag não fechada
+		<link>http://www.cvm.gov.br/exemplo/2.html</link>
+	</item>
+</channel>

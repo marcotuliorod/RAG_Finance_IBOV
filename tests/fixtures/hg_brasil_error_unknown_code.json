@@ -1,0 +1,9 @@
+{
+  "by": "hgbrasil.com",
+  "valid_key": true,
+  "errors": [
+    {"code": "SOME_NEW_CODE_NOT_DOCUMENTED", "message": "Erro não catalogado.", "help": "https://hgbrasil.com/docs/guide/erros"}
+  ],
+  "execution_time": 8,
+  "from_cache": false
+}
