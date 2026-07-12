@@ -166,8 +166,11 @@
   o banco real: backfill Yahoo Finance (2.485 pregões), HG Brasil (1
   snapshot), CVM RSS (60 itens, 6 feeds)
 - [x] Agendamento produtivo via `launchd` (runner escolhido: cron local
-  macOS, não GitHub Actions/pg_cron — projeto não tem repositório git nem
-  quer reescrever a ingestão em Deno):
+  macOS, não GitHub Actions/pg_cron — decidido quando o projeto ainda não
+  tinha repositório git; hoje já existe (github.com/marcotuliorod/
+  RAG_Finance_IBOV, privado) mas migrar o agendamento para Actions não foi
+  solicitado e exigiria reescrever a ingestão para rodar sem a máquina
+  local, então mantido como está):
   - `ops/launchd/com.ragb3.hgbrasil.daily.plist` — seg-sex 18h30
     (America/Sao_Paulo)
   - `ops/launchd/com.ragb3.cvm.poller.plist` — dispara a cada 30 min o ano
@@ -180,7 +183,18 @@
   - Logs em `logs/*.log` (gitignored)
   - Limitação aceita: só roda com a máquina ligada e desperta — sem
     observabilidade de falha por enquanto (ver item abaixo)
-- [ ] Observabilidade contínua (dashboard simples sobre `ingestion_job_run`)
+- [x] Observabilidade contínua — dashboard simples (`rag_b3.dashboard`,
+  `scripts/generate_dashboard.py`): HTML autocontido (dados embutidos como
+  JSON no momento da geração, sem fetch ao vivo/CDN), gerado sob demanda em
+  `dashboard/index.html` (gitignored — é um retrato, não código-fonte)
+  - Conteúdo: status por job (última execução, cor por status), frescor da
+    série do Ibovespa (dias desde o último pregão), cobertura dos 6 feeds
+    CVM, uso da cota HG Brasil por dia, tabela das execuções recentes
+  - Testado com 7 testes unitários (`tests/unit/test_dashboard_queries.py`,
+    conn mockada) e validado com dado real do banco de produção
+  - Publicado como Claude Artifact para visualização (privado por padrão);
+    republicar rodando o script de novo + `Artifact` para atualizar o
+    retrato — não é um serviço vivo, é gerado sob demanda
 - [ ] Reavaliar cotação de ações individuais (upgrade HG Brasil ou
   brapi.dev) se o caso de uso justificar
 

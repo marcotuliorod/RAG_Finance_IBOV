@@ -7,7 +7,7 @@
 
 | Métrica | Threshold | Status |
 |---|---|---|
-| Cobertura de ingestão diária (dias de pregão com snapshot capturado) | ≥ 98% | Jobs agendados via `launchd` desde 2026-07-11 — cobertura real a medir ao longo do tempo (`ingestion_job_run`) |
+| Cobertura de ingestão diária (dias de pregão com snapshot capturado) | ≥ 98% | Jobs agendados via `launchd` desde 2026-07-11 — cobertura real a medir ao longo do tempo (`ingestion_job_run`); acompanhar via dashboard (`scripts/generate_dashboard.py`) |
 | Profundidade histórica (`ibov_daily_history`) | ≥ 10 anos | **Atingido** — 2.484 pregões, 2016-07-11 a 2026-07-10 |
 | Erro em valores numéricos citados | < 1% | **Estrutural** — resolução por SQL determinístico (`rag_b3.query.ibov_numeric`), 10/10 casos numéricos do golden dataset batendo com o dado real |
 | Citação de fonte rastreável | 100% | Estrutural — `ibov_daily_history.source` + `raw_payload` sempre presentes |
@@ -82,3 +82,5 @@ implicar tempo real.
 - [x] Golden dataset (numérico) — concluído, 10/10 casos verificados
 - [x] Avaliação de faithfulness/answer relevancy — concluída, gate passou
   (0.899/0.973, ver métricas acima e plan.md Fase 1.4)
+- [x] Observabilidade contínua — dashboard gerado sob demanda
+  (`scripts/generate_dashboard.py`, ver plan.md Fase 2)
