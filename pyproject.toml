@@ -1,7 +1,7 @@
 [project]
 name = "rag-b3"
 version = "0.1.0"
-description = "Ingestão de dados de mercado (HG Brasil) e regulatório (CVM RSS) para o RAG Financeiro B3"
+description = "RAG especializado no índice Ibovespa — ingestão (HG Brasil, Yahoo Finance, CVM RSS), consulta numérica determinística, busca textual e geração com tool-use via Claude"
 requires-python = ">=3.11"
 dependencies = [
     "httpx>=0.27",
