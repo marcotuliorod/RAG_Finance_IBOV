@@ -198,6 +198,25 @@
 - [ ] Reavaliar cotação de ações individuais (upgrade HG Brasil ou
   brapi.dev) se o caso de uso justificar
 
+### 6. Interface de consulta (CONCLUÍDO)
+
+- [x] Interface web local (`rag_b3.web`, FastAPI + Uvicorn) para conversar
+  com `answer_question` sem escrever script — `GET /` serve uma página de
+  chat autocontida (mesma paleta do dashboard), `POST /api/ask` chama a
+  camada de geração e devolve resposta + `tool_calls` usadas
+- [x] Bind só em `127.0.0.1` por padrão (`scripts/run_chat_web.py`) — sem
+  autenticação, não deve ficar exposto na rede sem querer
+- [x] 4 testes unitários (`tests/unit/test_web_app.py`, `TestClient` +
+  dependency override de conexão/cliente) e validado ao vivo: `GET /`
+  serve HTML, `POST /api/ask` contra o Claude e o Postgres de produção
+  reais respondeu corretamente (máxima histórica batendo com o golden
+  dataset, e o caso adversarial de ação individual recusado sem chamar
+  ferramenta), corpo inválido devolve 422
+- Nota: porta 8000 também é usada pelo Docker Desktop nesta máquina (listener
+  IPv6) — coexistiu sem conflito com o Uvicorn em IPv4 durante o teste, mas
+  se aparecer um 404 inesperado ao acessar depois de a Uvicorn ter caído,
+  pode ser o Docker respondendo; mudar `PORT` se incomodar
+
 ## Saídas da Fase 0 (critério de conclusão — atingido)
 
 - [x] Três fontes de dado ingeridas e validadas com dado real
