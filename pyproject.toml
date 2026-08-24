@@ -28,8 +28,9 @@ dev = [
 pythonpath = ["src"]
 markers = [
     "integration: requires a local Postgres instance (docker); not run by default",
+    "llm_eval: requires Postgres + a real ANTHROPIC_API_KEY (generator + judge calls, has token cost); not run by default",
 ]
-addopts = "-m 'not integration'"
+addopts = "-m 'not integration and not llm_eval'"
 
 [tool.ruff]
 line-length = 100

@@ -133,12 +133,12 @@ def upsert_stock_quote(
     with conn.cursor() as cur:
         cur.execute(
             """
-            insert into hg_brasil_stock_quote
-                (symbol, trade_date, job_run_id, price, change_percent, change_price,
+            insert into stock_quote
+                (symbol, trade_date, source, job_run_id, price, change_percent, change_price,
                  volume, market_cap, currency, region, market_time, api_updated_at,
                  raw_response)
-            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            on conflict (symbol, trade_date) do update set
+            values (%s, %s, 'hg_brasil', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            on conflict (symbol, trade_date, source) do update set
                 job_run_id = excluded.job_run_id,
                 price = excluded.price,
                 change_percent = excluded.change_percent,

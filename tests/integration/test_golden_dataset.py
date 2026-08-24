@@ -7,23 +7,15 @@ e merece investigação antes de seguir para a camada de geração.
 Casos textuais/multi-hop/adversariais (sem `resolver`) não são verificados
 aqui — servem de referência para quando a camada de geração existir."""
 
-import json
 from datetime import date
-from pathlib import Path
 
 import pytest
 
 from rag_b3.query import ibov_numeric
 from rag_b3.query.errors import InsufficientDataError
+from tests.integration._golden_dataset import load_cases
 
 pytestmark = pytest.mark.integration
-
-GOLDEN_PATH = Path(__file__).parent.parent.parent / "data" / "datasets" / "eval" / "golden_v1.json"
-
-
-def _load_cases() -> list[dict]:
-    data = json.loads(GOLDEN_PATH.read_text(encoding="utf-8"))
-    return data["cases"]
 
 
 def _normalize_kwargs(kwargs: dict) -> dict:
@@ -40,7 +32,7 @@ def _normalize_kwargs(kwargs: dict) -> dict:
     return normalized
 
 
-NUMERIC_CASES = [c for c in _load_cases() if c.get("resolver")]
+NUMERIC_CASES = [c for c in load_cases() if c.get("resolver")]
 
 
 @pytest.mark.parametrize("case", NUMERIC_CASES, ids=[c["id"] for c in NUMERIC_CASES])

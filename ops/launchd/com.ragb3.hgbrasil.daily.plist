@@ -8,7 +8,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/marcotuliorodgmail.com/Prj_RAG_Finance/ops/launchd/run_hg_brasil.sh</string>
+        <string>/Users/marcotuliorod/Projetos/RAG_Finance_IBOV/ops/launchd/run_hg_brasil.sh</string>
     </array>
 
     <key>StartCalendarInterval</key>
@@ -21,9 +21,9 @@
     </array>
 
     <key>StandardOutPath</key>
-    <string>/Users/marcotuliorodgmail.com/Prj_RAG_Finance/logs/hg_brasil.log</string>
+    <string>/Users/marcotuliorod/Projetos/RAG_Finance_IBOV/logs/hg_brasil.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/marcotuliorodgmail.com/Prj_RAG_Finance/logs/hg_brasil.err.log</string>
+    <string>/Users/marcotuliorod/Projetos/RAG_Finance_IBOV/logs/hg_brasil.err.log</string>
 
     <key>RunAtLoad</key>
     <false/>

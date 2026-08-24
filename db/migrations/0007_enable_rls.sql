@@ -6,5 +6,7 @@ alter table hg_brasil_stock_quote enable row level security;
 alter table cvm_feed_item enable row level security;
 
 -- Nenhuma policy para anon/authenticated de propósito: o job de ingestão roda
--- com a service_role key (que ignora RLS). RBAC retrieval-native completo é
--- item de fase posterior (ver PRD Seção 15.2 / RF-09).
+-- com a service_role key (que ignora RLS). RBAC por perfil de cliente foi
+-- descoped definitivamente na v2.0 (sistema single-tenant, uso pessoal) —
+-- não é pendência de fase futura (ver PRD Seção 6, nota após RF-09, e
+-- Seção 12).

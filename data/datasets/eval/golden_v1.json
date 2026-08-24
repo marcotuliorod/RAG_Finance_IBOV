@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "created_at": "2026-07-12",
-  "note": "Casos sql_numerico têm `resolver` (função + kwargs de rag_b3.query.ibov_numeric) e `expected_values` verificáveis automaticamente (ver tests/integration/test_golden_dataset.py). Casos textuais/adversariais são qualitativos — a camada de geração ainda não existe (ver plan.md Fase 1).",
+  "note": "Casos sql_numerico têm `resolver` (função + kwargs de rag_b3.query.ibov_numeric) e `expected_values` verificáveis automaticamente contra o dado real, sem LLM (tests/integration/test_golden_dataset.py). Todos os 15 casos, incluindo os textuais/multi-hop/adversariais, são verificados via geração real + LLM-judge (answer_relevancy sempre; faithfulness quando há resolver ou requires_retrieval) em tests/integration/test_golden_dataset_generation.py (marker llm_eval).",
   "cases": [
     {
       "id": "001",

@@ -9,11 +9,17 @@ from rag_b3.ingestion.hg_brasil.job import run_hg_brasil_ingestion
 from tests.conftest import InMemoryBudgetRepository
 
 
-def _settings(on_insufficient_budget: str = "partial") -> Settings:
+def _settings(on_insufficient_budget: str = "partial", stock_price_enabled: bool = True) -> Settings:
+    # stock_price_enabled=True por padrão neste arquivo: os testes abaixo
+    # exercitam deliberadamente o loop de cotação por ticker (mantido como
+    # fallback testado, ver settings.hg_brasil_stock_price_enabled). O
+    # default de produção é False — ver
+    # test_stock_price_disabled_by_default_skips_watchlist_entirely.
     return Settings(
         HG_BRASIL_API_KEY="dummy",
-        SUPABASE_DB_URL="postgresql://unused/unused",
+        DATABASE_URL="postgresql://unused/unused",
         HG_BRASIL_ON_INSUFFICIENT_BUDGET=on_insufficient_budget,
+        HG_BRASIL_STOCK_PRICE_ENABLED=stock_price_enabled,
     )
 
 
@@ -160,6 +166,33 @@ def test_preflight_abort_never_calls_client():
     assert summary["succeeded"] == 0
     finish_args = job.tracker_instance.finish.call_args.args
     assert finish_args[2] == "aborted_insufficient_budget"
+
+
+def test_stock_price_disabled_by_default_skips_watchlist_entirely():
+    # settings.hg_brasil_stock_price_enabled default é False em produção —
+    # mesmo com a watchlist real populada (reativada para o brapi.dev em
+    # config/watchlist.yaml), o job HG Brasil não deve chamar load_watchlist
+    # nem get_stock_price, para não gastar cota nem gerar ruído no audit log
+    # contra um endpoint bloqueado (HgBrasilPlanRestrictedError).
+    watchlist = _watchlist("PETR4", "VALE3")
+    fake_client = MagicMock()
+    fake_client.get_market_snapshot.return_value = {"results": {}}
+
+    with _PatchedJob(watchlist, effective_limit=360) as job, patch(
+        "rag_b3.ingestion.hg_brasil.job.HgBrasilClient", return_value=fake_client
+    ):
+        settings = Settings(
+            HG_BRASIL_API_KEY="dummy",
+            DATABASE_URL="postgresql://unused/unused",
+            HG_BRASIL_STOCK_PRICE_ENABLED=False,
+        )
+        summary = run_hg_brasil_ingestion(settings, conn=MagicMock())
+
+    fake_client.get_stock_price.assert_not_called()
+    assert summary["requested"] == 1  # só o snapshot, watchlist ignorada
+    assert summary["succeeded"] == 1
+    finish_args = job.tracker_instance.finish.call_args.args
+    assert finish_args[2] == "success"
 
 
 def test_full_success_when_everything_works():
