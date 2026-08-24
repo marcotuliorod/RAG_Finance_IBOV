@@ -315,8 +315,8 @@ footer.page {
 
   <footer class="page">
     Gerado a partir de <code>ingestion_job_run</code>, <code>ibov_daily_history</code>,
-    <code>cvm_feed_item</code> e <code>hg_brasil_quota_control</code> no Supabase
-    (projeto rag-finance-b3). Retrato estático — rode
+    <code>cvm_feed_item</code> e <code>hg_brasil_quota_control</code> no Postgres
+    local. Retrato estático — rode
     <code>scripts/generate_dashboard.py</code> de novo para atualizar.
   </footer>
 </div>

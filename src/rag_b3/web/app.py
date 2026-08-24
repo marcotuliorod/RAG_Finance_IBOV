@@ -36,7 +36,7 @@ class AskResponse(BaseModel):
 
 def _get_conn() -> Iterator[Connection]:
     settings = get_settings()
-    with get_connection(settings.supabase_db_url) as conn:
+    with get_connection(settings.database_url) as conn:
         yield conn
 
 

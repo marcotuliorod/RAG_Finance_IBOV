@@ -15,7 +15,15 @@ create table ingestion_audit_log (
 create index on ingestion_audit_log (source, occurred_at desc);
 create index on ingestion_audit_log (job_run_id);
 
-revoke update, delete on ingestion_audit_log from authenticated, anon;
+-- Emendado em 2026-08-24 (migração de Supabase para Postgres local via
+-- Docker, ver docs/PRD.md): `authenticated`/`anon` são roles criadas
+-- automaticamente pelo Supabase e não existem em Postgres genérico — a
+-- versão original desse REVOKE falhava com "role does not exist" em um
+-- banco novo. `PUBLIC` é o idioma padrão do Postgres para "toda role" e
+-- cobre a mesma garantia (e mais). A proteção real de append-only vem do
+-- trigger abaixo, que bloqueia UPDATE/DELETE para qualquer role, inclusive
+-- o dono da tabela — este REVOKE é só defesa em profundidade.
+revoke update, delete on ingestion_audit_log from public;
 
 create or replace function reject_audit_mutation()
 returns trigger

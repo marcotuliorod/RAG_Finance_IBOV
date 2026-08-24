@@ -6,7 +6,7 @@ complementadas por sinalização regulatória da CVM — sempre com citação de
 fonte e data, nunca especulando quando falta dado.
 
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
-![Tests](https://img.shields.io/badge/tests-71%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-86%20passing-brightgreen)
 ![License](https://img.shields.io/badge/license-todos%20os%20direitos%20reservados-lightgrey)
 
 ## O problema
@@ -30,7 +30,7 @@ Documento de requisitos completo: [docs/PRD.md](docs/PRD.md).
 └─────────┬─────────┘  └──────────┬───────────┘  └─────────┬──────────┘
           │                       │                        │
           ▼                       ▼                        ▼
-              Postgres (Supabase) — ibov_daily_history / cvm_feed_item
+              Postgres (local, Docker) — ibov_daily_history / cvm_feed_item
                        + auditoria append-only por job
                                   │
           ┌───────────────────────┴────────────────────────┐
@@ -59,7 +59,7 @@ infra, ver `.specify/memory/constitution.md`).
 ## Stack
 
 - **Ingestão:** `httpx` + `tenacity` (retry), `feedparser` (RSS)
-- **Banco:** Postgres via Supabase (`psycopg`), RLS habilitado, auditoria
+- **Banco:** Postgres local via Docker (`psycopg`), RLS habilitado, auditoria
   append-only por trigger
 - **Geração:** Anthropic SDK, tool-use loop sobre 9 ferramentas (consulta
   numérica + busca textual)
@@ -123,32 +123,45 @@ resultado final polido.
 # 1. Instalar dependências
 uv sync --extra dev
 
-# 2. Configurar variáveis de ambiente
+# 2. Subir o Postgres local (Docker)
+docker compose up -d
+
+# 3. Configurar variáveis de ambiente
 cp .env.example .env
-# preencha ANTHROPIC_API_KEY, HG_BRASIL_API_KEY e SUPABASE_DB_URL
+# preencha ANTHROPIC_API_KEY e HG_BRASIL_API_KEY; DATABASE_URL já vem
+# pronto para o Postgres local do passo 2
 
-# 3. Aplicar as migrações (db/migrations/*.sql) no seu Postgres
+# 4. Aplicar as migrações
+uv run python scripts/apply_migrations.py
 
-# 4. Subir a interface de chat
+# 5. (Opcional) Popular o banco com dado real
+uv run python scripts/run_ibov_backfill.py       # 10 anos via Yahoo Finance
+uv run python scripts/run_cvm_poller.py          # feeds regulatórios CVM
+uv run python scripts/run_hg_brasil_ingestion.py # snapshot do dia
+uv run python scripts/run_brapi_ingestion.py     # cotação por ticker
+
+# 6. Subir a interface de chat
 uv run python scripts/run_chat_web.py
 # abre em http://127.0.0.1:8000
 
-# 5. Rodar os testes
-uv run pytest -q          # 71 testes unitários, sem rede/DB real
+# 7. Rodar os testes
+uv run pytest -q          # testes unitários, sem rede/DB real
 uv run ruff check src tests scripts
 ```
 
 Outros scripts úteis: `scripts/generate_dashboard.py` (dashboard de
 observabilidade), `scripts/run_golden_smoke_test.py` e `scripts/run_eval.py`
 (smoke test e gate de qualidade contra o golden dataset), `scripts/run_*_ingestion.py`
-(ingestão manual das três fontes).
+(ingestão manual das quatro fontes).
 
 ## Dados
 
 O schema completo vive em [`db/migrations/`](db/migrations/) — não há dump
-de dado real neste repositório; os dados de produção vivem no Supabase do
-autor. O golden dataset de avaliação (perguntas + respostas esperadas, sem
-dado sensível) está em [`data/datasets/eval/golden_v1.json`](data/datasets/eval/golden_v1.json).
+de dado real neste repositório; os dados de produção vivem no Postgres
+local do autor (Docker, migrado do Supabase em 2026-08-24 após a conta
+atingir o limite de projetos ativos — ver `docs/PRD.md`). O golden dataset
+de avaliação (perguntas + respostas esperadas, sem dado sensível) está em
+[`data/datasets/eval/golden_v1.json`](data/datasets/eval/golden_v1.json).
 
 ## Documentação mais profunda
 

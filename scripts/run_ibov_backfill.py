@@ -28,7 +28,7 @@ def main() -> int:
 
     configure_logging()
     settings = get_settings()
-    with get_connection(settings.supabase_db_url) as conn:
+    with get_connection(settings.database_url) as conn:
         summary = run_ibov_backfill(conn, range_=args.range)
     logger.info("Resumo do backfill IBOV: %s", json.dumps(summary, ensure_ascii=False))
     return 0 if summary.get("bars_found", 0) > 0 else 1

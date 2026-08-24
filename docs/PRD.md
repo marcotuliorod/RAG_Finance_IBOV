@@ -2,7 +2,7 @@
 
 **Documento de Requisitos de Produto (Product Requirements Document)**
 **Versão:** 2.0 — Julho/2026 (substitui a v1.0, escopo B3 amplo)
-**Status:** Em implementação — pipeline de ingestão já construído e validado com dados reais
+**Status:** Implementado — ingestão, retrieval, geração e eval gate construídos e validados com dados reais (atualizado 2026-08-24)
 
 > **Nota de versão:** a v1.0 deste PRD cobria o mercado B3 como um todo (notícias
 > de múltiplas fontes, cotação de dezenas de ações, dados institucionais de
@@ -33,10 +33,12 @@ O sistema deve responder perguntas analíticas sobre o comportamento do
 Ibovespa (hoje e ao longo do tempo) com **respostas citáveis, auditáveis e
 de baixa taxa de alucinação**.
 
-**Status atual:** a camada de ingestão (as três fontes acima) está
-**implementada, testada e validada contra dados reais** — ver Seção 9. A
-camada de RAG propriamente dita (chunking, embedding, retrieval, geração)
-ainda **não foi implementada** — é o próximo passo do roadmap (Seção 14).
+**Status atual:** ingestão (as três fontes acima, mais brapi.dev para
+cotação por ticker — Seção 9.3), retrieval (SQL determinístico para dado
+numérico + full-text search PT-BR para CVM), geração (tool-use via Claude)
+e o eval gate (faithfulness/answer relevancy) estão **implementados,
+testados e validados contra dados reais** — ver Seções 9, 11 e 12. Roadmap
+(Seção 14) cobre só os itens que seguem em aberto.
 
 ---
 
@@ -178,8 +180,9 @@ execução de ordens, uso como robô-consultor formal perante a CVM.
 - **Escalabilidade:** arquitetura modular por fonte de dado (`hg_brasil`,
   `cvm_rss`, `yahoo_finance`), cada uma com client/repository/job próprios —
   permite adicionar novas fontes sem tocar nas existentes.
-- **Residência de dados:** Postgres (Supabase) hospedado em `sa-east-1`
-  (São Paulo).
+- **Residência de dados:** Postgres local (Docker, no Mac do autor) desde
+  2026-08-24 — migrado do Supabase (`sa-east-1`) porque a conta atingiu o
+  limite de projetos ativos. Ver Seção 13 (custos) e roadmap (Seção 14).
 
 ---
 
@@ -205,9 +208,9 @@ execução de ordens, uso como robô-consultor formal perante a CVM.
    ingestion_job_run + ingestion_audit_log (append-only, RF-08) — todas as
    três fontes gravam aqui, de forma auditável e rastreável
 
-           ▼  (PRÓXIMA FASE — ainda não implementada)
+           ▼  (implementado — ver Seção 11)
 ┌─────────────────────────────────────────────────────────────────────┐
-│         CHUNKING · EMBEDDING · RETRIEVAL · GERAÇÃO (RAG)             │
+│   RETRIEVAL (SQL determinístico + full-text CVM) · GERAÇÃO (Claude)  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -254,17 +257,31 @@ ação individual (Seção 9.3) sem tocar no resto do sistema.
   mudar de formato ou ficar indisponível sem aviso — usar só para backfill
   pontual, nunca como dependência crítica de produção.
 
-### 9.3 Cotação de ações individuais — desativada (gap conhecido)
+### 9.3 Cotação de ações individuais — reativada via brapi.dev
 
 Validação ao vivo em 2026-07-11 confirmou que `/finance/stock_price` da HG
 Brasil retorna, para **qualquer símbolo**, `HTTP 200` com
 `{"results": {"error": true, "message": "Esta consulta necessita do plano
 Member Premium ou superior."}}` — não é limite de cota, é bloqueio de plano.
 O código para tratar isso corretamente existe e está testado
-(`HgBrasilPlanRestrictedError`), mas a `watchlist.yaml` foi esvaziada de
-propósito (ver comentário no arquivo) porque o escopo V2 não inclui mais
-ações individuais. Reativar exigiria upgrade de plano ou troca de fonte
-(ex.: brapi.dev, que tem plano free mas limita histórico a 3 meses).
+(`HgBrasilPlanRestrictedError`), mas o loop de cotação por ticker da HG
+Brasil ficou desligado por padrão (`settings.hg_brasil_stock_price_enabled
+= False`), mantido só como fallback caso o plano mude.
+
+Reativada em 2026-08-24 via **brapi.dev** (`rag_b3.ingestion.brapi`,
+https://brapi.dev/docs/acoes), validado ao vivo contra os 4 tickers de
+teste sem token (PETR4, VALE3, ITUB4, MGLU3): o endpoint
+`GET /api/quote/{tickers}` aceita a watchlist inteira separada por vírgula
+em **1 única requisição** (diferente da HG Brasil, que exigia 1 chamada por
+ticker) — por isso não foi necessário portar o budget manager atômico da
+HG Brasil; o limite do plano free do brapi é mensal, não diário, e
+1 requisição/dia útil fica bem abaixo de limites free típicos. Os demais 16
+tickers da watchlist (`config/watchlist.yaml`) exigem `BRAPI_TOKEN` (plano
+free, gerado em brapi.dev/dashboard). Grava na tabela `stock_quote`
+(renomeada de `hg_brasil_stock_quote`, ver Seção 10) com `source='brapi'`.
+Limitação conhecida do plano free do brapi (histórico limitado a ~3 meses)
+não afeta o desenho atual, que só ingere a cotação do dia corrente, não
+faz backfill histórico por ticker.
 
 ### 9.4 CVM RSS — sinalização regulatória
 
@@ -283,37 +300,48 @@ ações individuais. Reativar exigiria upgrade de plano ou troca de fonte
 |---|---|
 | `ibov_daily_history` | **Fonte única de verdade** da série histórica do índice — 1 linha por `trade_date`, `source` indica se veio do backfill (Yahoo) ou da ingestão diária (HG Brasil) |
 | `hg_brasil_market_snapshot` | Payload completo do endpoint `/finance` por dia (auditoria/reprocessamento) |
-| `hg_brasil_stock_quote` | Mantida no schema para quando/se ações individuais forem reativadas — hoje vazia |
+| `stock_quote` (renomeada de `hg_brasil_stock_quote` em 2026-08-24) | Cotação por ticker da watchlist — `source` distingue `hg_brasil` (fallback desligado) de `brapi` (fonte ativa, ver Seção 9.3) |
 | `cvm_feed_item` | Itens dos 6 feeds regulatórios, deduplicados |
 | `hg_brasil_quota_control` | Contador atômico de cota diária da HG Brasil |
 | `ingestion_job_run` / `ingestion_audit_log` | Rastreio de execução e trilha de auditoria append-only (RF-08) |
 
 ---
 
-## 11. Chunking, Embedding e Retrieval (não implementado ainda)
+## 11. Retrieval e Geração (implementado)
 
-A camada de RAG propriamente dita ainda não foi construída. Quando for:
+**Decisão de arquitetura definitiva: sem embeddings nem vector DB.** A v1.0
+deste PRD cogitava pgvector + BGE-M3/Qwen3-Embedding para retrieval híbrido;
+na prática, com ~60 itens CVM (crescimento lento, poucos feeds
+institucionais), full-text search nativo do Postgres (`to_tsvector`/
+`ts_rank`, PT-BR) já atinge boa precisão sem a infraestrutura extra de um
+vector DB. Reavaliar só se o volume de conteúdo textual crescer ordens de
+grandeza (não esperado no escopo atual, uso pessoal).
 
-- **Chunking:** `ibov_daily_history` é dado tabular/numérico — não se aplica
-  chunking de texto; a estratégia aqui é agregação/janela (ex.: "últimos 30
-  dias", "julho de cada ano") resolvida por query estruturada (SQL),
-  não por embedding. `cvm_feed_item` (texto) usa chunking semântico
-  convencional.
-- **Embedding:** necessário só para o conteúdo textual da CVM — avaliar
-  modelos PT-BR conforme já discutido (BGE-M3 vs. Qwen3-Embedding), critério
-  herdado da v1.0 deste PRD ainda válido.
-- **Retrieval híbrido:** dado numérico do índice não passa por retrieval
-  vetorial — é consulta SQL direta e determinística (a pergunta "qual foi a
-  variação nos últimos 30 dias" vira uma query em `ibov_daily_history`, não
-  uma busca semântica). Retrieval semântico/híbrido se aplica só aos feeds
-  CVM.
+- **Dado numérico** (`ibov_daily_history`): nunca passa por retrieval —
+  toda pergunta sobre pontuação/variação/máximas/comparação de períodos vira
+  consulta SQL determinística direto na tabela
+  (`rag_b3.query.ibov_numeric`), nunca busca semântica. O LLM nunca calcula
+  um número — só recebe o resultado já calculado via tool-use.
+- **Conteúdo textual CVM** (`cvm_feed_item`): full-text search PT-BR
+  (`rag_b3.retrieval.cvm_textual`), sem chunking (itens já são unidades
+  discretas curtas — título + resumo por decisão/sanção/legislação).
+- **Geração**: Claude com tool-use (`rag_b3.generation`), 9 ferramentas (7
+  numéricas + 2 textuais), loop de até 5 rodadas
+  (`GenerationLoopExceededError` se não convergir), citação obrigatória de
+  fonte/data no prompt de sistema.
 
 ---
 
 ## 12. Segurança e Auditoria (implementado)
 
 - RLS habilitado em todas as tabelas desde a criação (sem policy para
-  `anon`/`authenticated` — jobs rodam com `service_role`).
+  `anon`/`authenticated` — jobs rodam com `service_role`). **Decisão
+  definitiva para o escopo atual** (single-tenant, uso pessoal, sem
+  perfis de cliente — ver nota após RF-09 na Seção 6), não uma pendência
+  de fase futura. Se o projeto algum dia expuser a API além de
+  `127.0.0.1` ou ganhar múltiplos usuários, esse ponto deve ser
+  reavaliado — até lá, adicionar policies agora resolveria um problema
+  que não existe e arriscaria quebrar os próprios jobs de ingestão.
 - `ingestion_audit_log` é **append-only por trigger de banco** (rejeita
   `UPDATE`/`DELETE`) — RF-08 garantido no nível do banco, não só por
   convenção de aplicação.
@@ -332,8 +360,8 @@ ações individuais nem licenciamento de conteúdo de notícias:
 | HG Brasil (plano free) | R$ 0 — 1 req/dia, bem abaixo do limite de 400/dia |
 | Yahoo Finance (backfill) | R$ 0 — endpoint não-oficial, sem chave |
 | CVM RSS | R$ 0 — feeds públicos institucionais |
-| Supabase (projeto `rag-finance-b3`, sa-east-1) | Tier free hoje; reavaliar se volume crescer |
-| Geração/RAG (quando implementada) | A estimar — volume de perguntas esperado é baixo (uso pessoal), então roteamento para Claude Haiku deve cobrir a maioria dos casos a custo mínimo |
+| Postgres local (Docker) | R$ 0 — hospedado no Mac do autor; substituiu o Supabase em 2026-08-24 (limite de projetos ativos da conta) |
+| Geração (Claude Sonnet, decisão final 2026-08-24) | A estimar — volume de perguntas esperado é baixo (uso pessoal); Haiku foi testado por custo/latência mas revertido por regressão de faithfulness abaixo do gate (ver constitution.md) |
 
 ---
 
@@ -342,34 +370,50 @@ ações individuais nem licenciamento de conteúdo de notícias:
 ### Concluído (Fase 0 — Ingestão)
 
 - [x] Projeto Supabase dedicado (`sa-east-1`), schema com RLS e auditoria
-  append-only.
+  append-only. **Migrado para Postgres local via Docker em 2026-08-24**
+  (limite de projetos ativos da conta Supabase) — schema, RLS e auditoria
+  preservados sem mudança funcional, ver `docker-compose.yml`.
 - [x] Job diário HG Brasil (índice + câmbio + taxas) com budget manager
   testado e validado ao vivo.
 - [x] Backfill histórico via Yahoo Finance (10 anos, idempotente), validado
   ao vivo (2.484 pregões).
 - [x] Job CVM RSS (6 feeds), validado ao vivo (60 itens, dedup confirmado).
-- [x] 45 testes unitários, `ruff` limpo, zero chamada de rede/DB real nos
+- [x] 86 testes unitários, `ruff` limpo, zero chamada de rede/DB real nos
   testes.
 
-### Próximo (Fase 1 — Camada RAG)
+### Concluído (Fase 1 — Camada RAG)
 
-- [ ] Definir golden dataset de perguntas sobre o índice (10-20 casos
-  iniciais).
-- [ ] Camada de consulta estruturada sobre `ibov_daily_history` (SQL
-  determinístico para perguntas numéricas — variação, comparação de
+- [x] Golden dataset de 15 casos sobre o índice
+  (`data/datasets/eval/golden_v1.json`).
+- [x] Camada de consulta estruturada sobre `ibov_daily_history` (SQL
+  determinístico, `rag_b3.query.ibov_numeric` — variação, comparação de
   períodos, máximas/mínimas históricas).
-- [ ] Chunking + embedding para `cvm_feed_item` (conteúdo textual).
-- [ ] Geração com citação obrigatória de fonte e timestamp.
-- [ ] Avaliação com RAGAS (faithfulness, answer relevancy) sobre o golden
-  dataset.
+- [x] Retrieval textual para `cvm_feed_item` via full-text search PT-BR
+  nativo do Postgres — decisão definitiva de não usar embedding/vector DB
+  (ver Seção 11).
+- [x] Geração com tool-use (Claude Sonnet) e citação obrigatória de
+  fonte/data.
+- [x] Avaliação LLM-as-judge própria (faithfulness, answer relevancy) sobre
+  o golden dataset completo — gate automatizado tanto para casos numéricos
+  (`tests/integration/test_golden_dataset.py`) quanto para os 15 casos via
+  geração real (`tests/integration/test_golden_dataset_generation.py`,
+  marker `llm_eval`).
 
-### Futuro (Fase 2 — Expansão condicional)
+### Concluído (Fase 2 — Cotação por ticker)
 
-- [ ] Reavaliar cotação de ações individuais (upgrade HG Brasil ou
-  brapi.dev) se o caso de uso justificar.
-- [ ] Agendamento produtivo dos três jobs (cron/GitHub Actions/Supabase
-  pg_cron) — hoje rodados manualmente para validação.
-- [ ] Observabilidade contínua (dashboards de execução dos jobs).
+- [x] Cotação de ações individuais reativada via brapi.dev (ver Seção 9.3)
+  — HG Brasil per-ticker mantido como fallback desligado por padrão.
+
+### Futuro (sem data definida)
+
+- [ ] DeepEval/gate de CI, se/quando houver pipeline de CI.
+- [ ] Reavaliar limite mensal real do plano free do brapi.dev com uso
+  contínuo; portar o budget manager atômico da HG Brasil só se necessário.
+- [x] Agendamento produtivo dos quatro jobs de ingestão (HG Brasil, CVM
+  poller, brapi, backfill Yahoo pontual) via `launchd` local — ver
+  `ops/launchd/`.
+- [x] Observabilidade contínua — dashboard gerado sob demanda
+  (`scripts/generate_dashboard.py`).
 
 ---
 

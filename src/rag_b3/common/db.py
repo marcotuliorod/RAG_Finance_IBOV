@@ -7,10 +7,11 @@ from psycopg import Connection
 
 @contextmanager
 def get_connection(db_url: str) -> Iterator[Connection]:
-    """Conexão psycopg direta ao Postgres (Supabase), autocommit desligado.
+    """Conexão psycopg direta ao Postgres (local via Docker desde
+    2026-08-24, antes Supabase), autocommit desligado.
 
-    Usamos psycopg (não supabase-py/PostgREST) porque o budget manager
-    precisa de UPDATE...RETURNING atômico via função SQL — ver
+    Usamos psycopg (não um SDK de provedor específico) porque o budget
+    manager precisa de UPDATE...RETURNING atômico via função SQL — ver
     reserve_hg_brasil_quota em db/migrations/0003_hg_brasil_quota_control.sql.
     """
     conn = psycopg.connect(db_url)

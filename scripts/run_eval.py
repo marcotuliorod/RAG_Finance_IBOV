@@ -40,7 +40,7 @@ def main() -> int:
     faithfulness_scores = []
     relevancy_scores = []
 
-    with get_connection(settings.supabase_db_url) as conn:
+    with get_connection(settings.database_url) as conn:
         for case in cases:
             result = answer_question(conn, case["query"], client=gen_client)
             contexts = [json.dumps(tc["result"], ensure_ascii=False) for tc in result.tool_calls]

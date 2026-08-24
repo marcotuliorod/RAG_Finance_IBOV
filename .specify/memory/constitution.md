@@ -7,25 +7,24 @@ mudar sem registrar o porquê.
 
 ## Estado atual
 
-A camada de **ingestão está implementada e validada com dados reais**
-(Seção 9 do PRD): HG Brasil (diário), Yahoo Finance (backfill histórico),
-CVM RSS (regulatório). A camada de **RAG (embedding, retrieval, geração)
-ainda não foi construída** — as seções abaixo sobre embedding/vector
-DB/agentes são decisões de arquitetura para a próxima fase, não implementação
-existente.
+Ingestão, retrieval, geração e eval gate estão **implementados e validados
+com dados reais** (PRD Seções 9, 11, 12): HG Brasil + brapi.dev (diário),
+Yahoo Finance (backfill histórico), CVM RSS (regulatório) na ingestão;
+SQL determinístico + full-text search PT-BR no retrieval; Claude Sonnet
+com tool-use na geração. Atualizado 2026-08-24.
 
 ## AI Stack
 
-### Modelos em uso (planejado para a fase de geração)
+### Modelos em uso
 
-- Produção (geração padrão): claude-haiku-4-5-20251001 (trocado de
-  claude-sonnet-5 — decisão do usuário de priorizar custo/latência sobre
-  o roteamento por complexidade abaixo, que segue não implementado)
-- Roteamento por complexidade: claude-haiku-4-5 (classificação/extração,
-  maioria do volume — esperado baixo, uso pessoal) · claude-sonnet-5
-  (geração padrão) · claude-opus-4-8 (raciocínio multi-hop, casos raros)
-- LLM-as-Judge (evals): claude-opus-4-8 — nunca o mesmo modelo que gerou a
-  resposta sob avaliação (evita identity bias)
+- Produção (geração padrão, **implementado**): claude-sonnet-5 — revertido
+  de claude-haiku-4-5-20251001 (2026-08-24): a troca para Haiku derrubou
+  faithfulness de 0.899 para 0.767, abaixo do gate de 0.85; decisão final
+  do usuário foi priorizar qualidade sobre custo/latência. Nenhum
+  roteamento por complexidade foi implementado — um único modelo cobre
+  toda a geração, dado o volume baixo esperado (uso pessoal)
+- LLM-as-Judge (evals, **implementado**): claude-opus-4-8 — nunca o mesmo
+  modelo que gerou a resposta sob avaliação (evita identity bias)
 
 ### Dados (implementado)
 
@@ -37,36 +36,39 @@ existente.
 - Fonte regulatória: 6 feeds RSS institucionais da CVM
 - Fonte única de série histórica do índice: tabela `ibov_daily_history`
   (upsert idempotente, `source` indica proveniência por dia)
-- **Fora do escopo (gap conhecido):** cotação de ações individuais — HG
-  Brasil free bloqueia `/finance/stock_price` para qualquer símbolo
-  (confirmado empiricamente); reativar exige upgrade de plano ou trocar de
-  fonte (ex.: brapi.dev)
+- Cotação por ticker individual (watchlist, `stock_quote`): HG Brasil free
+  bloqueia `/finance/stock_price` para qualquer símbolo (confirmado
+  empiricamente), então esse loop fica desligado por padrão
+  (`hg_brasil_stock_price_enabled=False`). Reativada em 2026-08-24 via
+  **brapi.dev** (`rag_b3.ingestion.brapi`) — watchlist inteira em 1
+  requisição, sem budget manager por enquanto (ver PRD Seção 9.3)
 
-### RAG Config (planejado, não implementado ainda)
+### RAG Config (implementado)
 
 - Dado numérico do índice (`ibov_daily_history`) **não passa por retrieval
   vetorial** — perguntas sobre variação/comparação de períodos/máximas
-  históricas viram query SQL determinística direto na tabela, nunca busca
-  semântica sobre texto
-- Retrieval híbrido (denso + BM25) se aplica só ao conteúdo textual da CVM
-  (`cvm_feed_item`)
-- Vector DB: pgvector (mesmo Postgres/Supabase já usado pela ingestão) —
-  ponto de partida natural dado o volume baixo esperado (só 6 feeds
-  institucionais, não milhões de documentos)
-- Embedding: BGE-M3 ou Qwen3-Embedding — decisão ainda pendente de avaliação
-  empírica em PT-BR, mas volume de decisão bem menor que na v1.0 (só texto
-  regulatório da CVM, não notícias de múltiplas fontes)
-- Chunking: semântico com overlap para o texto dos feeds CVM; não se aplica
-  a `ibov_daily_history` (dado tabular resolvido por SQL, não por chunk)
-- Limiar de confiança de retrieval: 0,65–0,75 cosseno; abaixo disso, responder
-  "informação insuficiente" em vez de especular (RF-07)
+  históricas viram query SQL determinística direto na tabela
+  (`rag_b3.query.ibov_numeric`), nunca busca semântica sobre texto
+- **Decisão definitiva: sem vector DB nem embedding.** Retrieval textual
+  para o conteúdo da CVM (`cvm_feed_item`) usa full-text search PT-BR
+  nativo do Postgres (`rag_b3.retrieval.cvm_textual`, `to_tsvector`/
+  `ts_rank`) — pgvector + BGE-M3/Qwen3-Embedding foram cogitados na v1.0
+  deste documento, mas o volume real (~60 itens) nunca justificou a
+  infraestrutura extra. Reavaliar só se o corpus textual crescer ordens de
+  grandeza
+- Chunking: não se aplica — itens CVM já são unidades discretas curtas
+  (título + resumo por decisão/sanção/legislação); `ibov_daily_history` é
+  dado tabular resolvido por SQL, não por chunk
+- Gate de qualidade real: RF-07 ("informação insuficiente") dispara por
+  ausência de dado no período perguntado (`InsufficientDataError`), não por
+  um limiar de score de similaridade
 
-### Orquestração de agentes (planejado)
+### Orquestração de agentes (implementado)
 
-- Framework a definir na Fase 1 — dado o volume baixo e a natureza mais
-  simples do domínio (1 índice, não múltiplos ativos), um orquestrador leve
-  (SDK nativo Anthropic ou LangGraph só se HITL/checkpoint se mostrar
-  necessário) pode ser suficiente; não travar prematuramente
+- SDK nativo Anthropic — loop de tool-use simples (`rag_b3.generation.answer`,
+  máx. 5 rodadas), sem framework externo (LangGraph etc.). Suficiente para
+  o domínio (1 índice, volume baixo, uso pessoal); nenhum caso real exigiu
+  HITL/checkpoint até agora — revisitar só se surgir essa necessidade
 
 ### Evals (implementado — faithfulness/relevancy; DeepEval/CI planejado)
 
@@ -79,14 +81,15 @@ existente.
   a resposta em alegações, julgar suporte no contexto) é a mesma do RAGAS;
   reavaliar o pacote se uma versão futura corrigir o import
 - Juiz: `claude-opus-4-8` — nunca o mesmo modelo do gerador
-  (`claude-haiku-4-5-20251001`, ver Modelos em uso), evita identity bias
+  (`claude-sonnet-5`, ver Modelos em uso), evita identity bias
 - DeepEval (gate de CI/CD) ainda planejado, se/quando houver CI
 - Thresholds: faithfulness ≥ 0.85, answer relevancy ≥ 0.80, erro em valores
   numéricos citados < 1% (estrutural, resolução por SQL). Medido com
-  `claude-sonnet-5`: 0.899/0.973 (gate passou). Após trocar o gerador para
-  `claude-haiku-4-5-20251001`: 0.767/0.963 — **faithfulness abaixo do
-  threshold**, aceito conscientemente pelo usuário em troca de
-  custo/latência menores (ver validation.md)
+  `claude-sonnet-5`: 0.899/0.973 (gate passou). A troca temporária do
+  gerador para `claude-haiku-4-5-20251001` (2026-07/08) derrubou
+  faithfulness para 0.767/relevancy 0.963 — **abaixo do threshold** —
+  e foi revertida em 2026-08-24; `claude-sonnet-5` é a decisão final de
+  produção (ver validation.md)
 - Golden dataset: 15 casos sobre o índice em
   `data/datasets/eval/golden_v1.json` (`scripts/run_eval.py` roda o gate)
 
@@ -95,8 +98,9 @@ existente.
 - Ingestão: `ingestion_job_run` (status/resumo por execução) +
   `ingestion_audit_log` (append-only por trigger de banco, nunca aceita
   UPDATE/DELETE) — implementado e validado
-- Geração: tracing de ponta a ponta ainda a definir (candidatos: LangSmith,
-  TruLens) quando a camada de geração existir
+- Geração: sem tracing de ponta a ponta por requisição ainda (candidatos:
+  LangSmith, TruLens) — hoje a qualidade é acompanhada só pelo eval gate
+  (golden dataset), não por observabilidade contínua de uso real
 
 ### Guardrails
 
@@ -129,8 +133,10 @@ existente.
 
 ### Compliance
 
-- Hospedagem com residência de dados no Brasil: Supabase projeto
-  `rag-finance-b3`, região `sa-east-1` — já implementado
+- Hospedagem: Postgres local via Docker, no Mac do autor (2026-08-24) —
+  migrado do Supabase (projeto `rag-finance-b3`, `sa-east-1`) porque a
+  conta atingiu o limite de projetos ativos. Dado deixa de residir em
+  `sa-east-1` gerenciado e passa a residir na máquina local do autor
 - Yahoo Finance chart API não é endpoint oficial — uso restrito a backfill
   pontual de dado público (índice), nunca em caminho de produção crítico;
   reavaliar se o projeto evoluir para uso comercial/institucional
