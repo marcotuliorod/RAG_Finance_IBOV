@@ -43,12 +43,13 @@ def test_get_bar_on_or_before_before_series_start_returns_none(conn):
 
 
 def test_variation_between_known_dates(conn):
-    # 2016-07-11 (início da série, close=53960) até 2026-04-14 (máxima
+    # 2016-01-04 (início da série — âncora fixa client.SERIES_START, não
+    # relativa a hoje, ver yahoo_finance/client.py) até 2026-04-14 (máxima
     # histórica, close=198657) — valores confirmados via psql direto.
-    result = variation_between(conn, date(2016, 7, 11), date(2026, 4, 14))
-    assert result.start.close == pytest.approx(53960, rel=1e-3)
+    result = variation_between(conn, date(2016, 1, 4), date(2026, 4, 14))
+    assert result.start.close == pytest.approx(42141, rel=1e-3)
     assert result.end.close == pytest.approx(198657, rel=1e-3)
-    assert result.variation_points == pytest.approx(198657 - 53960, rel=1e-3)
+    assert result.variation_points == pytest.approx(198657 - 42141, rel=1e-3)
     assert result.variation_percent > 0
 
 
@@ -71,10 +72,13 @@ def test_all_time_high_matches_known_value(conn):
     assert result.bar.close == pytest.approx(198657, rel=1e-3)
 
 
-def test_extreme_between_min_matches_known_series_start(conn):
+def test_extreme_between_min_matches_known_2016_low(conn):
+    # A mínima de 2016 não coincide com o início da série (2016-01-04,
+    # close=42141) — o menor fechamento do ano é em 2016-01-26.
     result = extreme_between(conn, date(2016, 1, 1), date(2017, 1, 1), "min")
     assert result.kind == "min"
-    assert result.bar.close == pytest.approx(53960, rel=1e-3)
+    assert result.bar.trade_date == date(2016, 1, 26)
+    assert result.bar.close == pytest.approx(37497, rel=1e-3)
 
 
 def test_extreme_between_invalid_kind_raises(conn):
@@ -83,12 +87,14 @@ def test_extreme_between_invalid_kind_raises(conn):
 
 
 def test_period_summary_internally_consistent(conn):
-    summary = period_summary(conn, date(2016, 7, 11), date(2026, 4, 14))
+    summary = period_summary(conn, date(2016, 1, 4), date(2026, 4, 14))
     assert summary.trading_days > 2000
     assert summary.max_close == pytest.approx(198657, rel=1e-3)
     assert summary.max_close_date == date(2026, 4, 14)
-    assert summary.min_close == pytest.approx(53960, rel=1e-3)
-    assert summary.min_close_date == date(2016, 7, 11)
+    # mínima do período não é o início da série — é 2016-01-26 (37497),
+    # ver test_extreme_between_min_matches_known_2016_low.
+    assert summary.min_close == pytest.approx(37497, rel=1e-3)
+    assert summary.min_close_date == date(2016, 1, 26)
     assert summary.min_close <= summary.average_close <= summary.max_close
 
 

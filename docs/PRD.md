@@ -244,8 +244,14 @@ ação individual (Seção 9.3) sem tocar no resto do sistema.
 - `GET https://query1.finance.yahoo.com/v8/finance/chart/^BVSP` — endpoint
   não-oficial (não documentado/suportado publicamente pela Yahoo, mas
   amplamente usado, ex. pela lib `yfinance`), sem necessidade de chave.
-- Validado ao vivo: `range=10y&interval=1d` retorna 2.484 pregões diários
-  com OHLC completo, de 2016-07-11 a 2026-07-10.
+- `period1`/`period2` (timestamps explícitos) + `interval=1d`, âncora fixa
+  em `SERIES_START = 2016-01-01` (não `range=10y` relativo a hoje — corrigido
+  em 2026-08-24: `range` é relativo ao momento da chamada, então rodar o
+  backfill em dias diferentes produzia janelas de 10 anos diferentes,
+  quebrando qualquer valor "conhecido" de início de série; `range=max`
+  também foi descartado por reamostrar silenciosamente para granularidade
+  ~mensal em janelas longas). Validado ao vivo: retorna pregões diários com
+  OHLC completo a partir de 2016-01-04 (primeiro pregão a partir da âncora).
 - Rodado uma vez (ou esporadicamente) via `scripts/run_ibov_backfill.py` —
   não é um job diário agendado.
 - **Idempotente:** `ON CONFLICT (trade_date) DO NOTHING` — nunca sobrescreve

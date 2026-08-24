@@ -40,7 +40,7 @@ def test_golden_case_matches_expected_values(conn, case):
     resolver = case["resolver"]
     fn = getattr(ibov_numeric, resolver["function"])
     kwargs = _normalize_kwargs(resolver["kwargs"])
-    expected = case["expected_values"]
+    expected = case.get("expected_values", {})
 
     if expected.get("raises") == "InsufficientDataError":
         with pytest.raises(InsufficientDataError):
@@ -48,6 +48,10 @@ def test_golden_case_matches_expected_values(conn, case):
         return
 
     result = fn(conn, **kwargs)
+
+    if case.get("time_relative"):
+        _assert_time_relative_case(conn, case, result)
+        return
 
     for key, expected_value in expected.items():
         actual_value = _extract(result, key)
@@ -66,6 +70,31 @@ def test_golden_case_matches_expected_values(conn, case):
                 f"caso {case['id']}, campo {key}: esperado {expected_value}, "
                 f"obtido {actual_value}"
             )
+
+
+def _assert_time_relative_case(conn, case, result) -> None:
+    """Casos marcados `time_relative` (ver golden_v1.json) perguntam sobre
+    "os últimos N pregões" ou "a cotação mais recente" — não têm um valor
+    esperado fixo, porque o fim da janela é sempre o dado mais novo
+    disponível no momento em que o teste roda, que muda a cada backfill/
+    ingestão diária (ver client.SERIES_START para o análogo do início da
+    série, que esse SIM é fixo). Valida consistência estrutural contra uma
+    consulta SQL independente, não um número congelado."""
+    latest = _latest_trade_date(conn)
+    end_date = result.end.trade_date if hasattr(result, "end") else result.trade_date
+    assert end_date == latest, (
+        f"caso {case['id']}: data final do resultado ({end_date}) não bate com o "
+        f"pregão mais recente em ibov_daily_history ({latest})"
+    )
+    close = result.end.close if hasattr(result, "end") else result.close
+    assert close > 0, f"caso {case['id']}: close não positivo ({close})"
+
+
+def _latest_trade_date(conn) -> date:
+    with conn.cursor() as cur:
+        cur.execute("select max(trade_date) from ibov_daily_history")
+        row = cur.fetchone()
+        return row[0]
 
 
 def _looks_like_date(value: str) -> bool:
