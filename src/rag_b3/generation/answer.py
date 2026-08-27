@@ -3,6 +3,7 @@ ou busca "de cabeça"), o app executa contra o Postgres real e devolve o
 resultado; repete até o modelo produzir uma resposta final em texto."""
 
 import json
+import logging
 import time
 from dataclasses import dataclass, field
 
@@ -12,6 +13,8 @@ from psycopg import Connection
 from rag_b3.generation.client import get_anthropic_client, get_model
 from rag_b3.generation.prompt import SYSTEM_PROMPT
 from rag_b3.generation.tools import TOOL_SPECS, execute_tool
+
+logger = logging.getLogger(__name__)
 
 MAX_TOOL_ITERATIONS = 5
 
@@ -90,7 +93,14 @@ def answer_question(
         for block in response.content:
             if block.type != "tool_use":
                 continue
+            logger.debug("tool_use round=%d name=%s", api_calls, block.name)
             result = execute_tool(conn, block.name, block.input)
+            if isinstance(result, dict) and "error" in result:
+                # Não é necessariamente um bug — pode ser o comportamento
+                # correto (RF-07: dado insuficiente). Fica em WARNING, não
+                # ERROR, porque é esperado que aconteça sob uso normal
+                # (ex.: pergunta fora do período coberto pela série).
+                logger.warning("tool_error name=%s error=%s", block.name, result["error"])
             tool_calls_log.append({"name": block.name, "input": block.input, "result": result})
             tool_results.append(
                 {
@@ -101,6 +111,11 @@ def answer_question(
             )
         messages.append({"role": "user", "content": tool_results})
 
+    logger.warning(
+        "generation_loop_exceeded max_iterations=%d tool_calls=%d",
+        MAX_TOOL_ITERATIONS,
+        len(tool_calls_log),
+    )
     raise GenerationLoopExceededError(
         f"Excedeu {MAX_TOOL_ITERATIONS} rodadas de tool-use sem resposta final"
     )

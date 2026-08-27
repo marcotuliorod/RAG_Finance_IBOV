@@ -99,3 +99,39 @@ def test_answer_question_raises_when_tool_use_loop_never_ends(monkeypatch):
 
     with pytest.raises(GenerationLoopExceededError):
         answer_question(MagicMock(), "loop infinito", client=client)
+
+
+def test_answer_question_logs_warning_when_tool_returns_error(monkeypatch, caplog):
+    monkeypatch.setattr(
+        "rag_b3.generation.answer.execute_tool",
+        lambda conn, name, tool_input: {"error": "Sem dado histórico suficiente"},
+    )
+
+    client = MagicMock()
+    client.messages.create.side_effect = [
+        _Response("tool_use", [_ToolUseBlock("call_1", "ibov_variation_between", {})]),
+        _Response("end_turn", [_TextBlock("Não tenho dado suficiente para essa pergunta.")]),
+    ]
+
+    with caplog.at_level("WARNING", logger="rag_b3.generation.answer"):
+        answer_question(MagicMock(), "variação em 1990?", client=client)
+
+    assert any("tool_error" in record.message for record in caplog.records)
+
+
+def test_answer_question_logs_warning_when_loop_exceeded(monkeypatch, caplog):
+    monkeypatch.setattr(
+        "rag_b3.generation.answer.execute_tool",
+        lambda conn, name, tool_input: {"trade_date": "2026-07-11", "close": 177866.38},
+    )
+
+    client = MagicMock()
+    client.messages.create.return_value = _Response(
+        "tool_use", [_ToolUseBlock("call_x", "ibov_latest_bar", {})]
+    )
+
+    with caplog.at_level("WARNING", logger="rag_b3.generation.answer"):
+        with pytest.raises(GenerationLoopExceededError):
+            answer_question(MagicMock(), "loop infinito", client=client)
+
+    assert any("generation_loop_exceeded" in record.message for record in caplog.records)

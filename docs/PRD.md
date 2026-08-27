@@ -367,7 +367,7 @@ ações individuais nem licenciamento de conteúdo de notícias:
 | Yahoo Finance (backfill) | R$ 0 — endpoint não-oficial, sem chave |
 | CVM RSS | R$ 0 — feeds públicos institucionais |
 | Postgres local (Docker) | R$ 0 — hospedado no Mac do autor; substituiu o Supabase em 2026-08-24 (limite de projetos ativos da conta) |
-| Geração (Claude Sonnet, decisão final 2026-08-24) | A estimar — volume de perguntas esperado é baixo (uso pessoal); Haiku foi testado por custo/latência mas revertido por regressão de faithfulness abaixo do gate (ver constitution.md) |
+| Geração (Claude Sonnet, decisão final 2026-08-24) | ~US$ 0,013/requisição, medido em 2026-08-27 a partir de tokens reais reportados pela API (não estimado) — ver docs/cost-performance.md. Volume esperado é baixo (uso pessoal), então custo mensal projetado é de poucos dólares. Haiku foi testado por custo/latência mas revertido por regressão de faithfulness abaixo do gate (ver constitution.md e docs/evaluation/model-regression-case-study.md) |
 
 ---
 
