@@ -26,7 +26,7 @@ def main() -> int:
     cases = json.loads(GOLDEN_PATH.read_text(encoding="utf-8"))["cases"]
 
     failures = 0
-    with get_connection(settings.supabase_db_url) as conn:
+    with get_connection(settings.database_url) as conn:
         for case in cases:
             print("=" * 100)
             print(f"[{case['id']}] {case['query']}")

@@ -40,7 +40,11 @@ def run_hg_brasil_ingestion(settings: Settings, conn: Connection) -> dict:
     job_run_id = tracker.start(conn, "hg_brasil")
     conn.commit()
 
-    watchlist = load_watchlist(settings.watchlist_path)
+    # Loop de cotação por ticker desligado por padrão (settings.
+    # hg_brasil_stock_price_enabled) — bloqueado no plano free e substituído
+    # pelo job brapi.dev (ver ingestion/brapi/job.py); mantido aqui como
+    # fallback testado, não removido.
+    watchlist = load_watchlist(settings.watchlist_path) if settings.hg_brasil_stock_price_enabled else []
     trade_date = today_sao_paulo()
     summary: dict = {
         "requested": 1 + len(watchlist),

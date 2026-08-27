@@ -5,7 +5,7 @@
 # StartCalendarInterval. Fora da janela, sai sem chamar a rede.
 set -euo pipefail
 
-PROJECT_DIR="/Users/marcotuliorodgmail.com/Prj_RAG_Finance"
+PROJECT_DIR="/Users/marcotuliorod/Projetos/RAG_Finance_IBOV"
 cd "$PROJECT_DIR"
 
 WEEKDAY=$(TZ=America/Sao_Paulo date +%u)   # 1=segunda ... 7=domingo

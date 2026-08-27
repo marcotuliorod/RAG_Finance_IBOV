@@ -6,12 +6,14 @@ REPO_WATCHLIST = Path(__file__).parent.parent.parent / "config" / "watchlist.yam
 
 
 def test_load_real_watchlist_file():
-    # Desativada de propósito (ver comentário no topo de watchlist.yaml):
-    # /finance/stock_price é bloqueado no plano free da HG Brasil para
-    # qualquer símbolo, então a watchlist real fica vazia até upgrade de
-    # plano ou troca de fonte para cotação por papel individual.
+    # Reativada em 2026-08-24 via brapi.dev (ver comentário no topo de
+    # watchlist.yaml) — HG Brasil free segue bloqueando
+    # /finance/stock_price, mas a cotação por ticker agora vem do job brapi
+    # (rag_b3.ingestion.brapi), então a watchlist volta a ter os 20 tickers
+    # de prioridade.
     tickers = load_watchlist(REPO_WATCHLIST)
-    assert tickers == []
+    assert len(tickers) == 20
+    assert tickers[0].symbol == "PETR4"
 
 
 def test_load_watchlist_from_tmp_file(tmp_path):

@@ -11,8 +11,8 @@
 | Profundidade histórica (`ibov_daily_history`) | ≥ 10 anos | **Atingido** — 2.484 pregões, 2016-07-11 a 2026-07-10 |
 | Erro em valores numéricos citados | < 1% | **Estrutural** — resolução por SQL determinístico (`rag_b3.query.ibov_numeric`), 10/10 casos numéricos do golden dataset batendo com o dado real |
 | Citação de fonte rastreável | 100% | Estrutural — `ibov_daily_history.source` + `raw_payload` sempre presentes |
-| Faithfulness (LLM-as-judge, `claude-opus-4-8`) | ≥ 0.85 | **Não atingido, aceito conscientemente** — 0.767 sobre os 15 casos com o gerador em `claude-haiku-4-5-20251001` (`scripts/run_eval.py`); era 0.899 com `claude-sonnet-5`. Causa: Haiku às vezes recusa/responde sem chamar ferramenta (memória paramétrica em vez de grounding real — ver plan.md Fase 1.4). Usuário optou por manter Haiku por custo/latência mesmo com essa regressão |
-| Answer Relevancy (LLM-as-judge, `claude-opus-4-8`) | ≥ 0.80 | **Atingido** — 0.963 sobre os 15 casos com `claude-haiku-4-5-20251001` (era 0.973 com `claude-sonnet-5`) |
+| Faithfulness (LLM-as-judge, `claude-opus-4-8`) | ≥ 0.85 | **Atingido (gerador revertido para `claude-sonnet-5` em 2026-08-24)** — 0.899 sobre os 15 casos (`scripts/run_eval.py`), última medição com Sonnet. A troca temporária para `claude-haiku-4-5-20251001` (jul/2026) havia derrubado faithfulness para 0.767 (Haiku às vezes recusa/responde sem chamar ferramenta — ver plan.md Fase 1.4); revertida por priorizar qualidade sobre custo/latência. Recomenda-se rerodar `scripts/run_eval.py` após a reversão para reconfirmar o número antes de considerar o gate definitivamente fechado |
+| Answer Relevancy (LLM-as-judge, `claude-opus-4-8`) | ≥ 0.80 | **Atingido** — 0.973 sobre os 15 casos com `claude-sonnet-5` (era 0.963 com `claude-haiku-4-5-20251001`, temporário) |
 | Requisições HG Brasil/dia | ≤ 360 (margem de segurança sobre 400) | **Implementado e testado** — budget manager atômico |
 
 ## Golden Dataset — estrutura (CONCLUÍDO — 15 casos)
@@ -80,10 +80,10 @@ implicar tempo real.
 - [x] Agendamento produtivo dos jobs — `launchd` local (macOS), ativo desde
   2026-07-11 (ver plan.md Fase 2)
 - [x] Golden dataset (numérico) — concluído, 10/10 casos verificados
-- [x] Avaliação de faithfulness/answer relevancy — concluída; gate passava
-  com Sonnet (0.899/0.973); após a troca do gerador para
-  `claude-haiku-4-5-20251001` o gate de faithfulness **falha**
-  (0.767/0.963), aceito conscientemente pelo usuário (ver métricas acima e
-  plan.md Fase 1.4)
+- [x] Avaliação de faithfulness/answer relevancy — concluída; gate passa
+  com Sonnet (0.899/0.973, decisão final de produção desde 2026-08-24).
+  A troca temporária do gerador para `claude-haiku-4-5-20251001` havia
+  derrubado o gate de faithfulness (0.767/0.963); revertida (ver métricas
+  acima e plan.md Fase 1.4)
 - [x] Observabilidade contínua — dashboard gerado sob demanda
   (`scripts/generate_dashboard.py`, ver plan.md Fase 2)

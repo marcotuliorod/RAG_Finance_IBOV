@@ -37,7 +37,7 @@ class _PatchedBackfill:
 def test_backfill_success_counts_new_bars():
     fixture = load_json_fixture("yahoo_finance_chart_ok.json")
     with _PatchedBackfill(fetch_return=fixture) as bf:
-        summary = run_ibov_backfill(conn=MagicMock(), range_="10y")
+        summary = run_ibov_backfill(conn=MagicMock())
 
     assert summary["bars_found"] == 2  # o 3º timestamp tem close=null
     assert summary["bars_new"] == 2
@@ -49,7 +49,7 @@ def test_backfill_success_counts_new_bars():
 def test_backfill_re_run_counts_as_duplicate():
     fixture = load_json_fixture("yahoo_finance_chart_ok.json")
     with _PatchedBackfill(fetch_return=fixture, upsert_side_effect=lambda *a, **k: False):
-        summary = run_ibov_backfill(conn=MagicMock(), range_="10y")
+        summary = run_ibov_backfill(conn=MagicMock())
 
     assert summary["bars_new"] == 0
     assert summary["bars_duplicate"] == 2
@@ -57,7 +57,7 @@ def test_backfill_re_run_counts_as_duplicate():
 
 def test_backfill_fetch_failure_marks_job_failed():
     with _PatchedBackfill(fetch_side_effect=YahooFinanceError("boom")) as bf:
-        summary = run_ibov_backfill(conn=MagicMock(), range_="10y")
+        summary = run_ibov_backfill(conn=MagicMock())
 
     assert summary["bars_found"] == 0
     finish_args = bf.tracker_instance.finish.call_args.args

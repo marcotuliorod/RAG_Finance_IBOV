@@ -1,0 +1,29 @@
+{
+  "results": [
+    {
+      "symbol": "PETR4",
+      "shortName": "PETROBRAS PN",
+      "longName": "Petróleo Brasileiro S.A. - Petrobras",
+      "currency": "BRL",
+      "regularMarketPrice": 38.42,
+      "regularMarketChange": 0.47,
+      "regularMarketChangePercent": 1.25,
+      "regularMarketVolume": 45231000,
+      "marketCap": 502000000000.0,
+      "regularMarketTime": "2026-07-10T18:05:00.000Z"
+    },
+    {
+      "symbol": "VALE3",
+      "shortName": "VALE ON",
+      "longName": "Vale S.A.",
+      "currency": "BRL",
+      "regularMarketPrice": 61.10,
+      "regularMarketChange": -0.30,
+      "regularMarketChangePercent": -0.49,
+      "regularMarketVolume": 21044000,
+      "marketCap": 285000000000.0,
+      "regularMarketTime": "2026-07-10T18:05:00.000Z"
+    }
+  ],
+  "requestedAt": "2026-07-10T18:10:00.000Z"
+}

@@ -9,7 +9,10 @@
 
 ### 1. Infraestrutura
 
-- [x] Projeto Supabase dedicado `rag-finance-b3` (região `sa-east-1`)
+- [x] Projeto Supabase dedicado `rag-finance-b3` (região `sa-east-1`).
+  **Migrado para Postgres local via Docker em 2026-08-24** (conta Supabase
+  atingiu o limite de projetos ativos — ver docs/PRD.md Seção 8/13/14 e
+  `docker-compose.yml`); schema abaixo preservado sem mudança funcional
 - [x] Schema: `ibov_daily_history`, `hg_brasil_market_snapshot`,
   `hg_brasil_stock_quote`, `cvm_feed_item`, `hg_brasil_quota_control`,
   `ingestion_job_run`, `ingestion_audit_log` — RLS habilitado, auditoria
@@ -94,9 +97,10 @@
 ### 4. Geração e avaliação (EM ANDAMENTO)
 
 - [x] Cliente Anthropic configurado (`ANTHROPIC_API_KEY`/`ANTHROPIC_MODEL`
-  em `.env`, modelo padrão `claude-haiku-4-5-20251001` — trocado de
-  `claude-sonnet-5` a pedido do usuário para priorizar custo/latência;
-  consistente com constitution.md)
+  em `.env`, modelo padrão `claude-sonnet-5` — usado brevemente
+  `claude-haiku-4-5-20251001` por custo/latência (jul/2026), revertido em
+  2026-08-24 após regressão de faithfulness abaixo do gate; consistente
+  com constitution.md)
 - [x] Módulo `src/rag_b3/generation/`: `prompt.py` (citação obrigatória,
   guardrails de domínio/RF-07), `tools.py` (9 ferramentas — 7 numéricas de
   `ibov_numeric` + 2 de `cvm_textual` — expostas ao Claude via tool-use, com
@@ -135,7 +139,7 @@
   Cloud); implementação própria em `src/rag_b3/eval/judge.py` com a mesma
   técnica de LLM-as-judge (decompõe a resposta em alegações, julga suporte
   no contexto retornado pelas ferramentas), juiz `claude-opus-4-8` (nunca o
-  mesmo modelo do gerador, `claude-haiku-4-5-20251001` — evita identity
+  mesmo modelo do gerador, `claude-sonnet-5` — evita identity
   bias, ver constitution.md). Reavaliar `ragas` se uma versão futura
   corrigir o import
   - Resultado original (gerador `claude-sonnet-5`): **faithfulness média
@@ -162,9 +166,14 @@
     011 e 014 do golden dataset — citou "a série começa em 11/07/2016" de
     memória paramétrica, não do resultado de `_series_bounds_hint`, apesar
     do fix acima já existir); também houve um erro de cálculo no caso 008
-    ("queda de ~26%" vs. ~21% real). Usuário optou explicitamente por
-    manter Haiku mesmo com essa regressão de qualidade, priorizando
-    custo/latência (ver validation.md e constitution.md)
+    ("queda de ~26%" vs. ~21% real)
+  - **Revertido para `claude-sonnet-5` (2026-08-24)**: decisão final —
+    qualidade priorizada sobre custo/latência. `ANTHROPIC_MODEL` em
+    `.env.example` voltou a `claude-sonnet-5`; recomenda-se rerodar
+    `scripts/run_eval.py` após atualizar o `.env` local para reconfirmar
+    os números 0.899/0.973 antes de considerar o gate definitivamente
+    fechado (não executado nesta rodada por falta de `.env` com
+    credenciais no ambiente de implementação)
 - [x] Gate de qualidade definido: thresholds de constitution.md (0.85/0.80)
   usados como critério de aceite em `scripts/run_eval.py` (exit code 1 se
   não passar) — rodar antes de qualquer mudança de prompt/retrieval ir
@@ -172,10 +181,14 @@
 
 ## Fase 2 — Produção e expansão condicional (EM ANDAMENTO)
 
-- [x] Banco real conectado: `SUPABASE_DB_URL` aponta para o Postgres do
-  projeto `rag-finance-b3` via Session pooler (`aws-1-sa-east-1.pooler.
-  supabase.com`) — Docker local passa a ser só para dev/integração
-  (`LOCAL_DEV_DB_URL`)
+- [x] Banco real conectado: originalmente `SUPABASE_DB_URL` apontava para
+  o Postgres do projeto `rag-finance-b3` via Session pooler
+  (`aws-1-sa-east-1.pooler.supabase.com`), com Docker local só para
+  dev/integração (`LOCAL_DEV_DB_URL`). **Migrado em 2026-08-24**: o
+  Supabase foi abandonado (limite de projetos ativos da conta) e o mesmo
+  Postgres local via Docker (antes só dev/teste) passou a ser também o
+  banco de produção — variável renomeada para `DATABASE_URL`
+  (`docker-compose.yml`, `scripts/apply_migrations.py`)
 - [x] Produção populada com os três jobs rodados manualmente uma vez contra
   o banco real: backfill Yahoo Finance (2.485 pregões), HG Brasil (1
   snapshot), CVM RSS (60 itens, 6 feeds)

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import httpx
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential_jitter
@@ -9,6 +9,17 @@ BASE_URL = "https://query1.finance.yahoo.com/v8/finance/chart"
 IBOV_SYMBOL = "%5EBVSP"  # ^BVSP URL-encoded
 
 USER_AGENT = "Mozilla/5.0 (rag-b3-ibov-backfill/0.1; uso pessoal/pesquisa)"
+
+# Âncora fixa do início da série, não "últimos N anos" relativo a hoje.
+# Descoberta ao vivo em 2026-08-24 (migração Supabase → Postgres local):
+# o parâmetro `range=10y` do chart API é relativo ao momento da chamada —
+# rodar o backfill em datas diferentes produzia janelas de 10 anos
+# diferentes (ex.: início em 2016-07-11 numa execução, 2016-08-24 noutra),
+# quebrando qualquer teste/asserção com valor "conhecido" de início de
+# série. period1/period2 explícitos (usados abaixo) mantêm granularidade
+# diária mesmo em janelas longas — diferente de `range=max`, que a Yahoo
+# silenciosamente reamostra para ~mensal.
+SERIES_START = date(2016, 1, 1)
 
 
 class YahooFinanceError(Exception):
@@ -31,11 +42,16 @@ class _TransientError(Exception):
     wait=wait_exponential_jitter(initial=1, max=4),
     retry=retry_if_exception_type(_TransientError),
 )
-def fetch_ibov_chart(range_: str = "10y", interval: str = "1d", timeout: float = 15.0) -> dict:
+def fetch_ibov_chart(
+    start: date = SERIES_START, end: date | None = None, interval: str = "1d", timeout: float = 15.0
+) -> dict:
+    end = end or date.today()
+    period1 = int(datetime(start.year, start.month, start.day, tzinfo=timezone.utc).timestamp())
+    period2 = int(datetime(end.year, end.month, end.day, tzinfo=timezone.utc).timestamp())
     try:
         response = httpx.get(
             f"{BASE_URL}/{IBOV_SYMBOL}",
-            params={"range": range_, "interval": interval},
+            params={"period1": period1, "period2": period2, "interval": interval},
             headers={"User-Agent": USER_AGENT},
             timeout=timeout,
         )

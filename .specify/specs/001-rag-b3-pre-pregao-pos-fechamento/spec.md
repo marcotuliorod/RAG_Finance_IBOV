@@ -3,9 +3,11 @@
 > **Nota de versão:** esta SPEC substitui a versão anterior (escopo B3
 > amplo, pré-pregão + pós-fechamento multi-ativo). Fonte:
 > [docs/PRD.md](../../../docs/PRD.md) v2.0. Ver decisões de stack em
-> [constitution.md](../../memory/constitution.md). A camada de ingestão
-> descrita aqui **já está implementada e validada com dados reais**; a
-> camada de retrieval/geração ainda não.
+> [constitution.md](../../memory/constitution.md). Ingestão, retrieval e
+> geração descritos aqui **já estão implementados e validados com dados
+> reais** (atualizado 2026-08-24) — decisões abaixo marcadas como
+> "pendente"/"a definir" refletem o estado no momento em que esta spec foi
+> escrita; ver PRD Seção 11 para o resultado final.
 
 ## Corpus
 
@@ -38,30 +40,30 @@
 
 ## Embedding
 
-- Modelo: pendente de avaliação empírica em PT-BR (BGE-M3 vs.
-  Qwen3-Embedding vs. OpenAI fallback) — decisão de menor risco que na v1.0
-  do PRD, já que o corpus textual é pequeno (só CVM, não notícias
-  multi-fonte) e reindexar é barato nessa escala
-- Dimensões: a definir conforme modelo escolhido
+- **Decisão final: nenhum.** Não foi adotado embedding nem vector DB — ver
+  PRD Seção 11. Com ~60 itens CVM, full-text search PT-BR nativo do
+  Postgres atingiu precisão suficiente sem a infraestrutura extra.
+  Reavaliar só se o corpus textual crescer ordens de grandeza.
 
 ## Retrieval
 
 - **Numérico (`ibov_daily_history`)**: SQL direto, sem embedding — ex.:
   "variação dos últimos 30 dias" vira `SELECT` com `WHERE trade_date >=
   current_date - 30` e cálculo de variação percentual entre extremos
-- **Textual (`cvm_feed_item`)**: híbrido (denso + BM25) se o volume
-  justificar; dado o corpus pequeno hoje (~60 itens), busca lexical simples
-  pode ser suficiente para o MVP da camada de geração — reavaliar com dados
-  reais de uso antes de investir em reranking
-- Limiar de confiança: 0,65–0,75 cosseno para retrieval textual; abaixo
-  disso, RF-07 ("informação insuficiente")
+  (`rag_b3.query.ibov_numeric`)
+- **Textual (`cvm_feed_item`)**: busca lexical (full-text search PT-BR,
+  `to_tsvector`/`ts_rank`) via `rag_b3.retrieval.cvm_textual` — suficiente
+  para o corpus atual (~60 itens); retrieval híbrido/reranking não foi
+  necessário
+- Frescor de dado, não confiança de retrieval, é o gate real: RF-07
+  ("informação insuficiente") dispara por ausência de dado no período
+  perguntado (`InsufficientDataError`), não por um limiar de score
 
 ## Generation
 
-- Modelo LLM: roteado por complexidade (constitution.md) — volume esperado
-  baixo (uso pessoal/exploratório), então a maior parte das perguntas deve
-  ser resolvida por Haiku ou por query SQL direta, sem geração livre para a
-  parte numérica (RF-06)
+- Modelo LLM: `claude-sonnet-5` para o gerador (decisão final 2026-08-24,
+  revertido de Haiku após regressão de faithfulness — ver
+  constitution.md), `claude-opus-4-8` como juiz de eval
 - Citações obrigatórias: sim — fonte (HG Brasil / Yahoo Finance backfill /
   feed CVM específico) + timestamp/data (RF-05)
 - Cálculo numérico: sempre via SQL/código determinístico, nunca pelo LLM

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def main() -> int:
     configure_logging()
     settings = get_settings()
-    with get_connection(settings.supabase_db_url) as conn:
+    with get_connection(settings.database_url) as conn:
         summary = run_cvm_rss_ingestion(conn)
     logger.info("Resumo do poll CVM RSS: %s", json.dumps(summary, ensure_ascii=False))
     return 0 if summary["feeds_failed"] == 0 else 2

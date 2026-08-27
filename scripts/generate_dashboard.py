@@ -16,7 +16,7 @@ OUTPUT_PATH = Path(__file__).parent.parent / "dashboard" / "index.html"
 
 def main() -> int:
     settings = get_settings()
-    with get_connection(settings.supabase_db_url) as conn:
+    with get_connection(settings.database_url) as conn:
         data = build_dashboard_data(conn)
 
     html = render_dashboard_html(data)
