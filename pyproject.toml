@@ -24,6 +24,7 @@ dev = [
     "time-machine>=2.14",
     "ruff>=0.4",
     "pip-audit>=2.10",
+    "mypy>=1.11",
 ]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
@@ -36,6 +37,16 @@ addopts = "-m 'not integration and not llm_eval'"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+# Baseline de 18 erros pré-existentes medida em 2026-08-27 (ver
+# docs/audit/TECHNICAL_AUDIT.md F-18) — mypy roda em CI como etapa de
+# relatório (não bloqueia o pipeline ainda). Não suprimimos os erros com
+# `# type: ignore` em massa porque isso esconderia a baseline real; a
+# intenção é reduzir esse número incrementalmente, não fingir que já é
+# zero.
 
 [build-system]
 requires = ["setuptools>=68"]
