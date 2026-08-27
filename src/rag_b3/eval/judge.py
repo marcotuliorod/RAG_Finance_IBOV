@@ -69,7 +69,9 @@ _RELEVANCY_TOOL = {
 }
 
 
-def _call_judge_tool(client: anthropic.Anthropic, system: str, user: str, tool: dict) -> dict:
+def _call_judge_tool(
+    client: anthropic.Anthropic, system: str, user: str, tool: dict
+) -> tuple[dict, int, int]:
     response = client.messages.create(
         model=JUDGE_MODEL,
         max_tokens=2048,
@@ -78,9 +80,12 @@ def _call_judge_tool(client: anthropic.Anthropic, system: str, user: str, tool: 
         tool_choice={"type": "tool", "name": tool["name"]},
         messages=[{"role": "user", "content": user}],
     )
+    usage = getattr(response, "usage", None)
+    input_tokens = getattr(usage, "input_tokens", 0) or 0
+    output_tokens = getattr(usage, "output_tokens", 0) or 0
     for block in response.content:
         if block.type == "tool_use":
-            return block.input
+            return block.input, input_tokens, output_tokens
     raise RuntimeError(f"Juiz não retornou tool_use para {tool['name']}")
 
 
@@ -101,7 +106,7 @@ sustentada pelo contexto acima. Não julgue se a alegação é verdadeira em
 geral — apenas se o contexto fornecido a sustenta. Recusas/pedidos de
 esclarecimento sem alegação factual devem ter lista de claims vazia."""
 
-    result = _call_judge_tool(
+    result, input_tokens, output_tokens = _call_judge_tool(
         client,
         system="Você é um avaliador rigoroso de faithfulness para um sistema RAG.",
         user=user,
@@ -109,7 +114,9 @@ esclarecimento sem alegação factual devem ter lista de claims vazia."""
     )
     claims = [ClaimJudgement(**c) for c in result["claims"]]
     score = sum(c.supported for c in claims) / len(claims) if claims else 1.0
-    return FaithfulnessResult(claims=claims, score=score)
+    return FaithfulnessResult(
+        claims=claims, score=score, input_tokens=input_tokens, output_tokens=output_tokens
+    )
 
 
 def score_answer_relevancy(
@@ -122,10 +129,15 @@ Resposta a avaliar:
 
 Avalie o quão relevante e direta a resposta é em relação à pergunta."""
 
-    result = _call_judge_tool(
+    result, input_tokens, output_tokens = _call_judge_tool(
         client,
         system="Você é um avaliador rigoroso de answer relevancy para um sistema RAG.",
         user=user,
         tool=_RELEVANCY_TOOL,
     )
-    return RelevancyResult(score=result["score"], reasoning=result["reasoning"])
+    return RelevancyResult(
+        score=result["score"],
+        reasoning=result["reasoning"],
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+    )

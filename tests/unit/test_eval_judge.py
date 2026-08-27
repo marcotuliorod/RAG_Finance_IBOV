@@ -10,9 +10,16 @@ class _ToolUseBlock:
         self.input = input_
 
 
+class _Usage:
+    def __init__(self, input_tokens=100, output_tokens=40):
+        self.input_tokens = input_tokens
+        self.output_tokens = output_tokens
+
+
 class _Response:
-    def __init__(self, content):
+    def __init__(self, content, usage=None):
         self.content = content
+        self.usage = usage or _Usage()
 
 
 def test_score_faithfulness_computes_ratio_of_supported_claims():
@@ -41,6 +48,8 @@ def test_score_faithfulness_computes_ratio_of_supported_claims():
 
     assert result.score == 2 / 3
     assert len(result.claims) == 3
+    assert result.input_tokens == 100
+    assert result.output_tokens == 40
     client.messages.create.assert_called_once()
     call_kwargs = client.messages.create.call_args.kwargs
     assert call_kwargs["model"] == "claude-opus-4-8"
