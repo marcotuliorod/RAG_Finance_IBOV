@@ -67,9 +67,7 @@ def main() -> int:
             sql = path.read_text(encoding="utf-8")
             with conn.cursor() as cur:
                 cur.execute(sql)
-                cur.execute(
-                    "insert into schema_migrations (filename) values (%s)", (path.name,)
-                )
+                cur.execute("insert into schema_migrations (filename) values (%s)", (path.name,))
             # Commit por arquivo: uma falha na próxima migração não deve
             # desfazer as que já foram aplicadas e registradas com sucesso.
             conn.commit()

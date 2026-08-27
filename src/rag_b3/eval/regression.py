@@ -15,7 +15,9 @@ class MetricCheck:
     passed: bool
 
 
-def check_metric(name: str, observed: float, baseline_mean: float, tolerance: float, hard_floor: float) -> MetricCheck:
+def check_metric(
+    name: str, observed: float, baseline_mean: float, tolerance: float, hard_floor: float
+) -> MetricCheck:
     """Regride se `observed` cair abaixo do maior entre o piso absoluto
     pré-existente do projeto (hard_floor) e (baseline_mean - tolerance).
     Isso pega tanto uma queda abaixo do gate histórico quanto uma queda

@@ -9,7 +9,9 @@ BASELINE = {
 
 
 def test_check_metric_passes_when_within_tolerance_of_baseline():
-    check = check_metric("faithfulness", observed=0.90, baseline_mean=0.922, tolerance=0.05, hard_floor=0.85)
+    check = check_metric(
+        "faithfulness", observed=0.90, baseline_mean=0.922, tolerance=0.05, hard_floor=0.85
+    )
     assert check.passed
     assert check.effective_threshold == 0.872  # 0.922 - 0.05, acima do piso 0.85
 
@@ -18,7 +20,9 @@ def test_check_metric_fails_when_below_tolerance_even_if_above_hard_floor():
     # 0.86 está acima do piso absoluto (0.85) mas abaixo do limite relativo
     # ao baseline (0.922 - 0.05 = 0.872) — é exatamente o cenário que o
     # gate absoluto sozinho (scripts/run_eval.py) não pegaria.
-    check = check_metric("faithfulness", observed=0.86, baseline_mean=0.922, tolerance=0.05, hard_floor=0.85)
+    check = check_metric(
+        "faithfulness", observed=0.86, baseline_mean=0.922, tolerance=0.05, hard_floor=0.85
+    )
     assert not check.passed
     assert check.effective_threshold == 0.872
 
@@ -27,7 +31,9 @@ def test_check_metric_fails_when_below_hard_floor_regardless_of_baseline():
     # Reproduz o cenário real da regressão Haiku: mesmo com um baseline
     # baixo (hipotético), nunca deve passar abaixo do piso histórico do
     # projeto (0.85).
-    check = check_metric("faithfulness", observed=0.767, baseline_mean=0.80, tolerance=0.05, hard_floor=0.85)
+    check = check_metric(
+        "faithfulness", observed=0.767, baseline_mean=0.80, tolerance=0.05, hard_floor=0.85
+    )
     assert not check.passed
     assert check.effective_threshold == 0.85  # piso absoluto vence, não 0.80-0.05=0.75
 
