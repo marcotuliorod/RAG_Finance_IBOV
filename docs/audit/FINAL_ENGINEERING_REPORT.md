@@ -125,12 +125,21 @@ not an unexamined gap.
 Two workflows: `ci.yml` (every push/PR — lint, mypy non-blocking against a
 measured 18-error baseline, unit/integration/security tests, `pip-audit`,
 Docker build) and `eval.yml` (manual + weekly schedule — the real, billed
-evaluation and regression gate). **Important honest caveat**: both
-workflows were validated by running their equivalent commands locally
-against fresh containers and databases — neither has yet been exercised
-against a real GitHub Actions run, since that requires pushing to the
-project's GitHub remote, which this session did not do without the
-project owner's explicit decision.
+evaluation and regression gate).
+
+**Update — verified against real GitHub Actions post-project**: the
+project owner authorized pushing and opening
+[PR #1](https://github.com/marcotuliorod/RAG_Finance_IBOV/pull/1). `ci.yml`
+ran for real; all 6 jobs passed. The first real run surfaced a genuine bug
+local simulation had missed: `astral-sh/setup-uv@v3` silently ignores an
+unsupported `python-version` input (that's `actions/setup-python`'s
+interface), so the intended Python 3.12 pin was never actually applied.
+Fixed with a standard `.python-version` file; a second real run confirmed
+all 6 jobs passing cleanly, with the `python-version` warning gone and the
+mypy non-blocking design (step fails, job still passes) confirmed working
+exactly as intended. `eval.yml` has not yet been triggered for real — it
+needs an `ANTHROPIC_API_KEY` repository secret configured first, which
+remains a follow-up item.
 
 ## Deployment
 
@@ -152,8 +161,11 @@ limitations:
    judged out of proportion to fix without a concrete bug driving it.
 3. **Regression baseline is n=2** — needs recalibration with ≥5 runs once
    more API budget is available.
-4. **CI workflows unverified against real GitHub Actions** — only locally
-   simulated.
+4. ~~CI workflows unverified against real GitHub Actions~~ — **resolved
+   post-project**: `ci.yml` now verified passing on two real runs
+   ([PR #1](https://github.com/marcotuliorod/RAG_Finance_IBOV/pull/1)).
+   `eval.yml` still hasn't run for real (needs an `ANTHROPIC_API_KEY`
+   secret configured in the repo) — a smaller, remaining piece of this gap.
 5. **Retrieval-quality metrics (Precision@K/Recall@K/MRR) unmeasured** —
    no reliable ground truth exists against the live-updating CVM feed
    without building a frozen-snapshot fixture, which wasn't done.

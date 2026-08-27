@@ -17,10 +17,47 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 
 ## Current phase
 
-**Session 8 — README + Portfolio Case + Final Validation.** Status: complete. **This is the final
-session of the 8-session flagship-project transformation.**
+**Post-project follow-up — full validation + real GitHub flow.** Status: complete. The planned
+8-session sequence (below) finished at Session 8; this follow-up executed the one item that
+sequence explicitly left as a user decision: pushing to GitHub and verifying CI for real.
 
 ## Completed
+
+### Post-project — Full validation + GitHub flow
+
+- [x] Re-ran the complete local validation suite fresh: lint (clean), format check (same 21
+      pre-existing files noted before, unchanged), mypy (18-error baseline, unchanged), unit tests
+      (112 passed), integration/e2e/security tests (39 passed), `scripts/check_regression.py`
+      (PASSOU, no new API cost), `pip-audit` (clean).
+- [x] Ran the full `docker compose up` stack end-to-end again (alternate host port to avoid
+      disrupting the user's already-running local process on 8000): both services healthy, app
+      reached Postgres over the Docker network with real data (2,644/60 rows) visible, and —
+      genuinely valuable extra evidence — hit `POST /api/ask` against the real container and
+      confirmed the Session 2 global exception handler works correctly on a **real** failure (the
+      known Anthropic billing block): full traceback logged server-side, only the generic
+      `{"detail": "Erro interno do servidor."}` reached the client. Torn down and dev environment
+      (port 8000, Postgres data) restored and confirmed intact afterward.
+- [x] Pushed all 24 commits to `origin/chore/finalize-and-migrate-postgres` and opened
+      [PR #1](https://github.com/marcotuliorod/RAG_Finance_IBOV/pull/1) against `main` — the user
+      explicitly asked for "o fluxo completo do GitHub" this turn, resolving the push decision that
+      had been left pending at the end of Session 8.
+- [x] **`ci.yml` ran for real on GitHub Actions for the first time** — all 6 jobs (lint, typecheck,
+      unit-tests, integration-tests, security-tests, docker-build) passed on the first run.
+- [x] **Found and fixed a real bug the first live run surfaced that local simulation had missed**:
+      `astral-sh/setup-uv@v3` doesn't accept a `python-version` input (that's
+      `actions/setup-python`'s interface) — GitHub Actions silently tolerates unknown inputs, so the
+      job still passed, but the intended Python 3.12 pin was never actually being applied. Fixed
+      with a standard `.python-version` file (which `setup-uv` respects automatically) and removed
+      the ineffective input from every `setup-uv` step in both `ci.yml` and `eval.yml`.
+      Pushed the fix; **re-ran CI for real a second time and confirmed all 6 jobs pass cleanly**,
+      with the `python-version` warning gone from the run's annotations.
+      Also confirmed, in the same real run's annotations, that the mypy step fails as expected
+      (18-error baseline) but `continue-on-error: true` correctly keeps the `typecheck` job green —
+      the non-blocking design working exactly as intended, verified against the real platform, not
+      just asserted.
+- [x] Updated `README.md`/`README.pt-BR.md`'s CI/CD and Roadmap sections to state the real
+      verification (with the PR link) instead of "not yet verified against a real GitHub Actions
+      run" — the previous, now-outdated caveat.
 
 ### Session 1 — Technical Audit
 
@@ -294,19 +331,24 @@ session of the 8-session flagship-project transformation.**
 
 ## Next steps — post-project (nothing left in the planned 8-session sequence)
 
-The planned sequence is complete. What remains is entirely optional follow-up, not blocking the
-project's current state:
+The planned sequence, plus the post-project push/CI verification follow-up, are both complete. What
+remains is entirely optional follow-up, not blocking the project's current state:
 
-1. **Push to GitHub and verify `ci.yml`/`eval.yml` against a real GitHub Actions run** — the single
-   most valuable remaining verification step, deliberately not done automatically since pushing to
-   the shared remote needs the project owner's explicit decision, not an assumption.
+1. ~~Push to GitHub and verify `ci.yml`/`eval.yml` against a real GitHub Actions run~~ — **done**:
+   [PR #1](https://github.com/marcotuliorod/RAG_Finance_IBOV/pull/1), `ci.yml` verified passing
+   twice for real (including a real bug found and fixed on the first run). `eval.yml` itself has
+   not been triggered — it's manual/scheduled by design and needs a real `ANTHROPIC_API_KEY` GitHub
+   secret configured first, which wasn't set up this session.
 2. Add Anthropic API credit to unblock: re-verifying the 15 `llm_eval` tests fresh, running the
-   3rd+ evaluation calibration run to properly firm up the regression baseline (currently n=2), and
-   any new adversarial/prompt-injection testing against the live model.
-3. If a live/public demo becomes a real priority for portfolio purposes, `docs/deployment/strategy.md`
+   3rd+ evaluation calibration run to properly firm up the regression baseline (currently n=2), any
+   new adversarial/prompt-injection testing against the live model, and (new) configuring the
+   `ANTHROPIC_API_KEY` repository secret so `eval.yml` can actually run in GitHub Actions.
+3. Decide whether to merge PR #1 into `main` — left open deliberately, a merge decision belongs to
+   the project owner, not something to do unprompted.
+4. If a live/public demo becomes a real priority for portfolio purposes, `docs/deployment/strategy.md`
    Option C (a cheap VPS) is the documented, ready-to-execute path — auth and rate limiting would
    need to be built first per that document.
-4. Optional, non-blocking cleanup: the 18-error mypy baseline, the 21 pre-existing files not
+5. Optional, non-blocking cleanup: the 18-error mypy baseline, the 21 pre-existing files not
    `ruff format`-clean (see the note added to `docs/audit/TECHNICAL_AUDIT.md` this session), and a
    frozen-snapshot fixture for retrieval-quality metrics if that ever becomes a priority.
 
@@ -349,3 +391,9 @@ project's current state:
 | 2026-08-27 | `.venv/bin/python scripts/check_regression.py` (Session 8, no new API cost) | REGRESSION CHECK: PASSOU |
 | 2026-08-27 | `docker build -t rag-b3-app:final-check .` (Session 8, final) | Build succeeded |
 | 2026-08-27 | `docker compose config -q` (Session 8, final) | Valid |
+| 2026-08-27 | `docker compose up -d --build` (post-project, full stack, alt port) | Both services healthy |
+| 2026-08-27 | `POST /api/ask` against the real running container (post-project) | HTTP 500, generic message only — real Anthropic billing error logged server-side, confirmed not leaked to client |
+| 2026-08-27 | `git push origin chore/finalize-and-migrate-postgres` (post-project) | 24 commits pushed |
+| 2026-08-27 | `gh pr create` (post-project) | [PR #1](https://github.com/marcotuliorod/RAG_Finance_IBOV/pull/1) created |
+| 2026-08-27 | GitHub Actions `ci.yml` run #33093690129 (post-project, real platform run) | 6/6 jobs passed; annotations revealed the `setup-uv` `python-version` bug |
+| 2026-08-27 | GitHub Actions `ci.yml` run #33093844986 (post-project, after the fix) | 6/6 jobs passed, `python-version` warning gone, mypy non-blocking behavior confirmed working as designed |

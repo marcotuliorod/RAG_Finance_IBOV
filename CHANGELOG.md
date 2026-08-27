@@ -5,6 +5,23 @@ Sessions 1-8). Format loosely follows [Keep a Changelog](https://keepachangelog.
 Entries grouped by session; each links to the relevant docs/commits rather
 than repeating their full detail.
 
+## Post-project — Full Validation + Real GitHub Flow
+
+### Fixed
+- `astral-sh/setup-uv@v3` was being passed an unsupported `python-version`
+  input (that's `actions/setup-python`'s interface) — GitHub Actions
+  silently tolerated it, so `ci.yml` still passed, but the intended Python
+  3.12 pin was never actually applied. Found on the first real GitHub
+  Actions run of this project's CI. Fixed with a standard `.python-version`
+  file; re-verified passing on a second real run.
+
+### Changed
+- Pushed all 24 commits and opened
+  [PR #1](https://github.com/marcotuliorod/RAG_Finance_IBOV/pull/1) —
+  `ci.yml` verified passing for real on GitHub Actions (6/6 jobs), not just
+  locally simulated. Updated `README.md`/`README.pt-BR.md` and the audit
+  docs to reflect this.
+
 ## Session 8 — README, Portfolio, Final Validation
 
 ### Added

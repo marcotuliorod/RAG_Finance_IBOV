@@ -65,12 +65,15 @@ every push/PR. `.github/workflows/eval.yml`: the real, billed RAG
 evaluation + regression gate, deliberately **not** run per-PR (manual
 `workflow_dispatch` + weekly schedule instead) — see
 `docs/evaluation/regression.md` and the workflow file's own comments for
-the cost trade-off reasoning. See `docs/audit/IMPLEMENTATION_PROGRESS.md`
-Session 6 for what was actually verified to pass locally before these
-workflows were written (the CI files themselves have not yet been proven
-against a real GitHub Actions run, since that requires pushing to GitHub —
-noted as the one part of this session's CI work verified by close local
-simulation, not by an actual Actions run).
+the cost trade-off reasoning.
+
+**Update — verified against real GitHub Actions**: `ci.yml` was pushed and
+run for real in [PR #1](https://github.com/marcotuliorod/RAG_Finance_IBOV/pull/1) —
+all 6 jobs passed. The first real run caught a genuine bug local
+simulation had missed (`astral-sh/setup-uv@v3` silently ignoring an
+unsupported `python-version` input), fixed with a `.python-version` file
+and re-verified on a second real run. `eval.yml` has not yet run for real —
+it needs an `ANTHROPIC_API_KEY` repository secret configured first.
 
 ## What's scheduled
 

@@ -214,6 +214,17 @@ regressão, deliberadamente **não** rodada a cada commit (trigger manual +
 agendamento semanal em vez disso — cada execução custa dinheiro real,
 ~US$0,74 medido). Trade-off documentado, não uma omissão silenciosa.
 
+**Verificado contra o GitHub Actions real**, não só simulação local: a
+[PR #1](https://github.com/marcotuliorod/RAG_Finance_IBOV/pull/1) disparou
+o `ci.yml` de verdade — os 6 jobs (lint, typecheck, unit-tests,
+integration-tests, security-tests, docker-build) passaram. A primeira
+execução real também pegou um bug real que a simulação local não tinha
+achado: o `astral-sh/setup-uv@v3` não aceita um input `python-version`
+(essa é a interface do `actions/setup-python`) — o pin de Python 3.12
+pretendido não estava sendo aplicado de verdade. Corrigido com um arquivo
+`.python-version` padrão — exatamente o tipo de lacuna que só uma execução
+real na plataforma revela.
+
 ## Deployment
 
 Containerizado (`Dockerfile` + `docker-compose.yml`, verificado ponta a
@@ -382,8 +393,9 @@ Lacunas reais, abertas — não escondidas:
   [`docs/audit/TECHNICAL_AUDIT.md`](docs/audit/TECHNICAL_AUDIT.md) F-18).
 - O baseline de regressão precisa de recalibração com ≥5 execuções quando
   houver mais orçamento de API (hoje n=2).
-- `ci.yml`/`eval.yml` só foram simulados localmente, ainda não verificados
-  contra uma execução real do GitHub Actions.
+- `eval.yml` (o gate real de avaliação, com custo) ainda não foi disparado
+  de verdade — é manual/agendado por design (ver CI/CD acima); `ci.yml` já
+  foi verificado contra uma execução real (PR #1).
 - Métricas de qualidade de retrieval (Precision@K/Recall@K/MRR) continuam
   não medidas — limitação justificada, ver Avaliação acima.
 

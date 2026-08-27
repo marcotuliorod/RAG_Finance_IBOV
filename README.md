@@ -206,6 +206,16 @@ gate, deliberately **not** run per-commit (manual trigger + weekly
 schedule instead — each run costs real money, ~US$0.74 measured).
 Documented trade-off, not a silent omission.
 
+**Verified against real GitHub Actions**, not just local simulation:
+[PR #1](https://github.com/marcotuliorod/RAG_Finance_IBOV/pull/1) triggered
+`ci.yml` for real — all 6 jobs (lint, typecheck, unit-tests,
+integration-tests, security-tests, docker-build) passed. The first real run
+also caught a genuine bug local simulation had missed:
+`astral-sh/setup-uv@v3` doesn't accept a `python-version` input (that's
+`actions/setup-python`'s interface), so the intended Python 3.12 pin was
+silently not being applied. Fixed with a standard `.python-version` file
+— exactly the kind of gap only a real platform run reveals.
+
 ## Deployment
 
 Containerized (`Dockerfile` + `docker-compose.yml`, verified end-to-end:
@@ -369,8 +379,9 @@ Real, open gaps — not hidden:
   [`docs/audit/TECHNICAL_AUDIT.md`](docs/audit/TECHNICAL_AUDIT.md) F-18).
 - The regression baseline needs recalibration with ≥5 runs once more API
   budget is available (currently n=2).
-- `ci.yml`/`eval.yml` have only been locally simulated, not yet verified
-  against a real GitHub Actions run.
+- `eval.yml` (the real, billed evaluation gate) has not yet been triggered
+  for real — it's manual/scheduled by design (see CI/CD above); `ci.yml`
+  has been verified against a real run (PR #1).
 - Retrieval-quality metrics (Precision@K/Recall@K/MRR) remain unmeasured —
   reasoned limitation, see Evaluation above.
 
