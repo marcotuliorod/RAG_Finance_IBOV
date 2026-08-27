@@ -4,6 +4,7 @@ busca textual passam por aqui — o LLM nunca calcula variação/comparação
 
 from datetime import date
 
+import psycopg
 from psycopg import Connection
 from pydantic import BaseModel
 
@@ -194,6 +195,18 @@ def execute_tool(conn: Connection, name: str, tool_input: dict) -> dict:
             return {"error": f"ferramenta desconhecida: {name}"}
     except (InsufficientDataError, ValueError) as exc:
         return {"error": str(exc)}
+    except psycopg.DataError as exc:
+        # Input malformado que o psycopg/Postgres rejeita antes mesmo de
+        # tentar interpretar como dado (ex.: bytes NUL em texto) — achado em
+        # tests/security/test_injection_resistance.py: sem este catch, um
+        # tool_use com esse tipo de payload virava uma exceção não tratada
+        # (500 genérico via web/app.py) em vez do contrato normal de erro
+        # "{'error': ...}" que dá ao LLM a chance de reformular a pergunta.
+        # Rollback defensivo: uma query rejeitada pode deixar a transação em
+        # estado abortado, o que quebraria as próximas chamadas de tool no
+        # mesmo loop (mesma conexão reaproveitada por até 5 rodadas).
+        conn.rollback()
+        return {"error": f"entrada inválida para a ferramenta {name}: {exc}"}
 
     if result is None:
         return {"error": "sem dado disponível"}

@@ -28,6 +28,18 @@ def test_latest_by_feed_rejects_invalid_feed_key(conn):
         latest_by_feed(conn, "noticias_mercado", limit=1)
 
 
+def test_latest_by_feed_clamps_excessive_limit_instead_of_trusting_the_caller(conn):
+    # O LLM controla `limit` via tool input — não deve conseguir pedir mais
+    # linhas do que o corpus tem só porque pediu um número absurdo.
+    items = latest_by_feed(conn, "legislacao", limit=999_999)
+    assert len(items) <= 50
+
+
+def test_latest_by_feed_clamps_non_positive_limit_to_one(conn):
+    items = latest_by_feed(conn, "legislacao", limit=0)
+    assert len(items) == 1
+
+
 def test_search_cvm_items_finds_real_resolucao_items(conn):
     results = search_cvm_items(conn, "resolução", feed_key="legislacao", limit=5)
     assert len(results) > 0
@@ -42,3 +54,8 @@ def test_search_cvm_items_no_match_returns_empty(conn):
 def test_search_cvm_items_rejects_invalid_feed_key(conn):
     with pytest.raises(ValueError):
         search_cvm_items(conn, "resolução", feed_key="noticias_mercado")
+
+
+def test_search_cvm_items_clamps_excessive_limit_instead_of_trusting_the_caller(conn):
+    results = search_cvm_items(conn, "resolução", limit=999_999)
+    assert len(results) <= 50

@@ -19,6 +19,19 @@ FEED_KEYS = (
 
 _COLUMNS = "feed_key, title, summary, link, published_at"
 
+# `limit` chega aqui a partir do input de uma tool call do LLM
+# (generation/tools.py) — o JSON Schema da tool não impõe limite superior, e
+# o LLM não deveria decidir sozinho quantas linhas o Postgres devolve.
+# Clampar aqui é a validação de verdade, não decorativa (ver
+# docs/security/AI_SECURITY.md — Tool Abuse).
+_MAX_LIMIT = 50
+
+
+def _clamp_limit(limit: int) -> int:
+    if limit < 1:
+        return 1
+    return min(limit, _MAX_LIMIT)
+
 
 def _row_to_result(row) -> CvmFeedResult:
     return CvmFeedResult(
@@ -32,6 +45,7 @@ def latest_by_feed(conn: Connection, feed_key: str, limit: int = 1) -> list[CvmF
     de busca semântica."""
     if feed_key not in FEED_KEYS:
         raise ValueError(f"feed_key inválido: {feed_key!r}. Válidos: {FEED_KEYS}")
+    limit = _clamp_limit(limit)
     with conn.cursor() as cur:
         cur.execute(
             f"""
@@ -53,6 +67,7 @@ def search_cvm_items(
     relevância e depois por data mais recente."""
     if feed_key is not None and feed_key not in FEED_KEYS:
         raise ValueError(f"feed_key inválido: {feed_key!r}. Válidos: {FEED_KEYS}")
+    limit = _clamp_limit(limit)
     with conn.cursor() as cur:
         cur.execute(
             f"""
