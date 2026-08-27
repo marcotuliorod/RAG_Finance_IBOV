@@ -17,7 +17,7 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 
 ## Current phase
 
-**Session 5 — Observability + Cost & Performance.** Status: complete.
+**Session 6 — Testing + Docker + CI/CD.** Status: complete.
 
 ## Completed
 
@@ -158,9 +158,43 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 - [x] Updated `docs/audit/TECHNICAL_AUDIT.md`: F-05 and F-06 now fully Resolved; added F-19 as a
       still-open, deliberately-not-addressed item (dashboard doesn't cover chat/generation traffic).
 
+### Session 6 — Testing + Docker + CI/CD
+
+- [x] Added `tests/e2e/` — real full-stack tests (FastAPI app + real Postgres, only the outbound
+      Anthropic call mocked) proving the complete request path works, including a real
+      `InsufficientDataError` surfacing correctly through the whole stack.
+- [x] Added `tests/evaluation/README.md` documenting where evaluation logic actually lives
+      (preserving existing organization rather than physically moving working test files).
+- [x] **Fixed F-12** (migrations not idempotent): added a `schema_migrations` tracking table to
+      `scripts/apply_migrations.py`. Verified 3 ways — bootstrapped on the real dev DB (no data
+      touched), fresh-applied against a throwaway container, re-run confirmed as a clean no-op.
+- [x] **Fixed F-07** (app not containerized): wrote `Dockerfile` (multi-stage, non-root, healthcheck)
+      and added an `app` service to `docker-compose.yml`. Built and brought up the full stack for
+      real, confirmed both containers healthy, confirmed the app container reaches Postgres over the
+      Docker network and sees the real 2,644-row dataset. Published only to `127.0.0.1` on the host
+      to preserve the no-auth/localhost-only security posture even when containerized.
+- [x] Found and fixed a real gap while validating CI design: `tests/integration/*` (and the new
+      `tests/e2e/`) assert against real historical data and were never designed to pass against a
+      freshly-migrated empty Postgres — meaning CI as first designed would have failed. Fixed by
+      creating `db/seed/dev_seed.sql` (a real, public-data snapshot of `ingestion_job_run`,
+      `ibov_daily_history`, `cvm_feed_item`) and verifying the full integration+e2e+security suite
+      (39 tests) passes against a genuinely fresh, seeded Postgres — not just the pre-existing dev DB.
+- [x] Measured a real mypy baseline (18 errors, 7 files) before deciding whether/how to add type
+      checking — added `mypy` as a dev dependency, configured non-blocking in CI, documented the
+      baseline explicitly rather than suppressing it or silently omitting type-checking altogether.
+- [x] **Fixed F-01** (no CI/CD): `.github/workflows/ci.yml` (lint, mypy, unit, integration, security
+      + `pip-audit`, Docker build) and `.github/workflows/eval.yml` (real eval + regression gate,
+      deliberately manual/scheduled-only given real API cost, not per-PR). Both validated by running
+      the equivalent commands locally against fresh containers/DBs (see Test/validation runs below)
+      — **not yet verified against an actual GitHub Actions run**, since that requires pushing to a
+      GitHub remote, which wasn't done this session.
+- [x] Updated `docs/architecture/deployment.md` to reflect the new containerized/idempotent/CI'd
+      reality, and `docs/audit/TECHNICAL_AUDIT.md`'s status table (F-01, F-07, F-09, F-12, F-18 all
+      updated).
+
 ## In progress
 
-- None. Session 5 scope is closed.
+- None. Session 6 scope is closed.
 
 ## Blocked
 
@@ -195,30 +229,39 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
   injection payload) was not attempted given the API credit blocker — only structural/mocked tests
   and analysis of the existing golden-dataset adversarial results were done. This is reported as an
   honest scope limitation in `docs/security/AI_SECURITY.md`, not glossed over.
+- Session 6: chose to measure the real mypy baseline (18 errors) before deciding how to add type
+  checking, then added it to CI as non-blocking with the baseline documented, rather than either (a)
+  skipping type-checking entirely or (b) spending this session's budget fixing 18 pre-existing type
+  errors in working, tested, audited code with no concrete bug driving the fix.
+- Session 6: discovered mid-implementation that the existing integration test suite (predates this
+  session) was never designed to run against a fresh/empty Postgres — it asserts real historical
+  values. Rather than leave the new CI workflow silently broken (or claim it works without checking),
+  built and verified a real-data seed fixture (`db/seed/dev_seed.sql`) and proved the full suite
+  passes against a genuinely fresh, seeded database before considering CI done.
+- Session 6: `docker-compose.yml`'s `app` service publishes only to `127.0.0.1:8000` on the host
+  (not `0.0.0.0`), a deliberate choice to keep the no-auth security posture unchanged by
+  containerization — noted explicitly in both the compose file and `docs/architecture/deployment.md`
+  rather than left as an implicit side-effect.
 
-## Next steps (Session 6 — Testing + Docker + CI/CD)
+## Next steps (Session 7 — Deployment + System Design + ADRs)
 
-1. Organize/confirm test directory structure against the roadmap's ask (`tests/unit/`,
-   `tests/integration/`, `tests/evaluation/`, `tests/security/` — already created Session 4 —
-   `tests/e2e/`). Current reality: evaluation logic lives in `tests/integration/test_golden_dataset*.py`,
-   not a separate `tests/evaluation/` — decide whether to add a thin `tests/evaluation/README.md`
-   pointing there (preserving existing structure) rather than physically moving files, consistent
-   with the project's preservation rule.
-2. Write a `Dockerfile` for the FastAPI app (F-07 — currently only Postgres is containerized) and
-   extend `docker-compose.yml` with an `app` service, so `docker compose up` actually starts the
-   whole application, not just the database.
-3. Create `.github/workflows/` — the project has **zero CI today** (F-01). Minimum pipeline: lint
-   (ruff) → type check (none configured yet — F-18, decide whether to add mypy/pyright this session
-   or defer) → unit tests → integration tests (needs a Postgres service in the workflow) → security
-   tests (`tests/security/`, no API cost) → Docker build. Explicitly do NOT wire the `llm_eval`
-   suite or `scripts/run_eval.py`/`check_regression.py` into every-PR CI given the real API cost per
-   run (~US$0.74) — that's more appropriately a scheduled/manual gate, not a per-commit one; decide
-   and document the trade-off rather than silently wiring it in or silently omitting it.
-4. Migrations idempotency (F-12): `scripts/apply_migrations.py` has no tracking table — needed for
-   a CI job that runs migrations against a fresh Postgres container repeatedly.
-5. Still blocked on new real LLM API calls (credit) — CI/Docker/testing-infra work in this session
-   doesn't need them; note clearly in the CI design where `llm_eval`/`run_eval.py` would plug in
-   once credit is available, rather than leaving it unaddressed.
+1. Write `docs/deployment/strategy.md` — now that the app is actually containerized (Session 6),
+   compare real deployment target options (not arbitrarily pick one) against this system's actual
+   constraints: single-user, low cost tolerance, needs Postgres, needs env-var secrets, no current
+   auth story. Include costs, env vars, health checks, rollback, backup, monitoring.
+2. Write `docs/system-design/` (context, architecture, scalability, reliability, security,
+   trade-offs) — synthesizing what Sessions 1-6 already established rather than re-deriving it.
+3. Write ADRs (`docs/adr/ADR-001` through `ADR-008`) — the mega-prompt's own list: LLM selection,
+   RAG architecture (the no-vector-DB decision, already argued in
+   `docs/architecture/ai-architecture.md` — now formalize it as ADR-002), retrieval strategy,
+   evaluation strategy, tool calling, observability, security, deployment. Each needs
+   Context/Decision/Alternatives/Trade-offs/Consequences — most of the substance already exists
+   across Sessions 1-6's docs; this is consolidation into the ADR format, not new research.
+4. Decide and document the auth story explicitly if Session 7's deployment strategy points toward
+   anything beyond localhost — don't let it be silently implied by "we containerized it."
+5. If the real GitHub Actions run of `ci.yml`/`eval.yml` (never actually exercised on GitHub itself,
+   only locally simulated in Session 6) is going to happen, that's the moment to verify it — note
+   whether that's in scope for Session 7 or deferred to Session 8's final validation.
 
 ## Test/validation runs performed
 
@@ -241,3 +284,12 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 | 2026-08-27 | `.venv/bin/pip-audit --desc` (Session 4) | No known vulnerabilities found |
 | 2026-08-27 | `.venv/bin/python -m pytest -q` (Session 5, after observability logging changes) | 112 passed, 52 deselected |
 | 2026-08-27 | `.venv/bin/python -m ruff check src tests scripts` (Session 5) | All checks passed |
+| 2026-08-27 | `.venv/bin/python scripts/apply_migrations.py` (Session 6, fresh throwaway Postgres) | 11 applied |
+| 2026-08-27 | `.venv/bin/python scripts/apply_migrations.py` (Session 6, re-run same container) | 0 applied, 11 skipped — idempotency confirmed |
+| 2026-08-27 | `docker build -t rag-b3-app:test .` (Session 6) | Build succeeded |
+| 2026-08-27 | `docker compose up -d` (Session 6, full stack) | Both containers healthy; app→postgres connectivity confirmed with real data (2,644 rows) visible over the Docker network |
+| 2026-08-27 | `.venv/bin/python -m pytest -q -m integration tests/integration/ tests/e2e/ tests/security/` (Session 6, against fresh Postgres + `db/seed/dev_seed.sql`) | 39 passed |
+| 2026-08-27 | `.venv/bin/python -m pytest -q` (Session 6, final) | 112 passed, 54 deselected |
+| 2026-08-27 | `.venv/bin/python -m ruff check src tests scripts` (Session 6) | All checks passed |
+| 2026-08-27 | `.venv/bin/python -m mypy src --ignore-missing-imports` (Session 6, baseline measurement) | 18 errors, 7 files — documented, not fixed this session |
+| 2026-08-27 | `.venv/bin/python -c "import yaml; ..."` (Session 6, workflow YAML syntax check) | Both `ci.yml`/`eval.yml` valid YAML |
