@@ -65,3 +65,21 @@ def test_ask_returns_502_on_generation_loop_exceeded(monkeypatch):
 
     assert response.status_code == 502
     assert "Excedeu" in response.json()["detail"]
+
+
+def test_ask_returns_generic_500_and_does_not_leak_exception_detail(monkeypatch):
+    app = create_app()
+    app.dependency_overrides[_get_conn] = lambda: MagicMock()
+    app.dependency_overrides[_get_client] = lambda: MagicMock()
+
+    def raise_unexpected(conn, query, client):
+        raise RuntimeError("postgresql://postgres:localdev@localhost:5433/postgres unreachable")
+
+    monkeypatch.setattr("rag_b3.web.app.answer_question", raise_unexpected)
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.post("/api/ask", json={"query": "qualquer coisa"})
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Erro interno do servidor."}
+    assert "postgresql://" not in response.text

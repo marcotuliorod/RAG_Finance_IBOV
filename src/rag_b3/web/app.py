@@ -3,20 +3,25 @@
 script Python. Uso pessoal, sem autenticação — o entrypoint
 (`scripts/run_chat_web.py`) faz bind só em localhost por padrão."""
 
+import logging
+import time
 from collections.abc import Iterator
 from contextlib import asynccontextmanager
 
 import anthropic
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from psycopg import Connection
 from pydantic import BaseModel
 
 from rag_b3.common.db import get_connection
+from rag_b3.common.logging_config import configure_logging
 from rag_b3.config.settings import get_settings
 from rag_b3.generation.answer import GenerationLoopExceededError, answer_question
 from rag_b3.generation.client import get_anthropic_client
 from rag_b3.web.page import CHAT_PAGE_HTML
+
+logger = logging.getLogger(__name__)
 
 
 class AskRequest(BaseModel):
@@ -51,7 +56,18 @@ async def _lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    configure_logging()
     app = FastAPI(title="RAG Ibovespa — Chat", lifespan=_lifespan)
+
+    @app.exception_handler(Exception)
+    async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        # Sem isso, qualquer falha não prevista (Postgres fora do ar, erro da
+        # API Anthropic, etc.) vaza um traceback padrão do FastAPI. Loga a
+        # exceção completa no servidor mas devolve só uma mensagem genérica
+        # ao cliente — nunca a mensagem de exceção crua, que pode conter
+        # detalhe interno (string de conexão, corpo de resposta de API).
+        logger.error("Erro não tratado em %s %s", request.method, request.url.path, exc_info=exc)
+        return JSONResponse(status_code=500, content={"detail": "Erro interno do servidor."})
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:
@@ -63,10 +79,31 @@ def create_app() -> FastAPI:
         conn: Connection = Depends(_get_conn),
         client: anthropic.Anthropic = Depends(_get_client),
     ) -> AskResponse:
+        started_at = time.monotonic()
+        # Não logamos o texto da pergunta/resposta (conteúdo do usuário) —
+        # só metadados operacionais, seguindo a diretriz de observability de
+        # nunca logar informação potencialmente sensível.
         try:
             result = answer_question(conn, payload.query, client=client)
         except GenerationLoopExceededError as exc:
+            logger.warning(
+                "Loop de tool-use excedido: query_len=%d elapsed=%.2fs",
+                len(payload.query),
+                time.monotonic() - started_at,
+            )
             raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+        logger.info(
+            "POST /api/ask ok: query_len=%d tool_calls=%d api_calls=%d "
+            "input_tokens=%d output_tokens=%d latency=%.2fs model=%s",
+            len(payload.query),
+            len(result.tool_calls),
+            result.api_calls,
+            result.input_tokens,
+            result.output_tokens,
+            result.latency_seconds,
+            result.model_id,
+        )
         return AskResponse(
             answer=result.text,
             tool_calls=[
