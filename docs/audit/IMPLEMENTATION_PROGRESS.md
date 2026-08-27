@@ -17,7 +17,7 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 
 ## Current phase
 
-**Session 6 — Testing + Docker + CI/CD.** Status: complete.
+**Session 7 — Deployment + System Design + ADRs.** Status: complete.
 
 ## Completed
 
@@ -192,9 +192,27 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
       reality, and `docs/audit/TECHNICAL_AUDIT.md`'s status table (F-01, F-07, F-09, F-12, F-18 all
       updated).
 
+### Session 7 — Deployment + System Design + ADRs
+
+- [x] Wrote `docs/deployment/strategy.md` — compared 5 real deployment options (stay local,
+      Tailscale, cheap VPS, PaaS, serverless) against this system's actual constraints, including
+      explicitly weighing the fact that this project already hit one free-tier resource-limit wall
+      (the original Supabase migration). Chose Tailscale-first with a documented VPS upgrade path,
+      rather than picking a cloud provider arbitrarily.
+- [x] Wrote all 8 ADRs (`docs/adr/ADR-001` through `ADR-008`): LLM selection, RAG architecture,
+      retrieval strategy, evaluation strategy, tool calling, observability, security, deployment —
+      each with Context/Decision/Alternatives/Trade-offs/Consequences, consolidating decisions
+      already made and evidenced across Sessions 1-6 rather than introducing new unreviewed choices.
+- [x] Wrote `docs/system-design/` (context, architecture, scalability, reliability, security,
+      trade-offs) — the interview-support layer, with a concrete "what would need to change to
+      scale this" analysis (connection pooling, caching, rate limiting, in that order) rather than a
+      vague "it would need work."
+- [x] Updated `docs/architecture/deployment.md`'s cross-references and confirmed consistency with
+      the new `docs/deployment/strategy.md`.
+
 ## In progress
 
-- None. Session 6 scope is closed.
+- None. Session 7 scope is closed.
 
 ## Blocked
 
@@ -243,25 +261,28 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
   containerization — noted explicitly in both the compose file and `docs/architecture/deployment.md`
   rather than left as an implicit side-effect.
 
-## Next steps (Session 7 — Deployment + System Design + ADRs)
+## Next steps (Session 8 — README + Portfolio Case + Final Validation)
 
-1. Write `docs/deployment/strategy.md` — now that the app is actually containerized (Session 6),
-   compare real deployment target options (not arbitrarily pick one) against this system's actual
-   constraints: single-user, low cost tolerance, needs Postgres, needs env-var secrets, no current
-   auth story. Include costs, env vars, health checks, rollback, backup, monitoring.
-2. Write `docs/system-design/` (context, architecture, scalability, reliability, security,
-   trade-offs) — synthesizing what Sessions 1-6 already established rather than re-deriving it.
-3. Write ADRs (`docs/adr/ADR-001` through `ADR-008`) — the mega-prompt's own list: LLM selection,
-   RAG architecture (the no-vector-DB decision, already argued in
-   `docs/architecture/ai-architecture.md` — now formalize it as ADR-002), retrieval strategy,
-   evaluation strategy, tool calling, observability, security, deployment. Each needs
-   Context/Decision/Alternatives/Trade-offs/Consequences — most of the substance already exists
-   across Sessions 1-6's docs; this is consolidation into the ADR format, not new research.
-4. Decide and document the auth story explicitly if Session 7's deployment strategy points toward
-   anything beyond localhost — don't let it be silently implied by "we containerized it."
-5. If the real GitHub Actions run of `ci.yml`/`eval.yml` (never actually exercised on GitHub itself,
-   only locally simulated in Session 6) is going to happen, that's the moment to verify it — note
-   whether that's in scope for Session 7 or deferred to Session 8's final validation.
+1. **Only now** rewrite `README.md` (Phase 16 — explicitly deferred until all engineering sessions
+   were done, per the governing brief). Must fix the two staleness issues the Session 1 audit found
+   (stale test-count badge, the Haiku/Sonnet narrative describing the regression as "kept" when it
+   was actually reverted) and correct the "RAG" framing per `docs/adr/ADR-002-rag-architecture.md`.
+2. Write `docs/portfolio/` (portfolio-summary.md, technical-highlights.md, interview-guide.md) —
+   using "production-oriented" language per the brief's own instruction, not "production-ready"
+   unless genuinely provable (it mostly isn't — no real deployment exists, see ADR-008).
+3. Write `CHANGELOG.md` covering all 7 sessions' worth of changes.
+4. Write `docs/audit/FINAL_ENGINEERING_REPORT.md` — before/after, architecture, testing, evaluation,
+   security, observability, CI/CD, deployment, remaining gaps, portfolio value.
+5. Final validation pass: re-run the full test suite, lint, mypy, `pip-audit`, Docker build/up one
+   more time end-to-end, and — if feasible — actually push to GitHub and verify `ci.yml` runs for
+   real (it has only been locally simulated so far, never exercised on actual GitHub Actions
+   infrastructure — this is the one piece of Session 6's CI work that remains unverified against
+   the real platform).
+6. Remaining known gaps to state plainly in the final report (not hidden): F-11 (no rate limiting),
+   F-18 (18 mypy errors, unfixed), retrieval P@K/R@K/MRR (not computed, documented why), the n=2
+   regression baseline (needs recalibration once API budget allows), no live GitHub Actions
+   verification yet, and the API credit blocker's effect on how much fresh adversarial/LLM testing
+   was actually done in Sessions 3-4 vs. Sessions 1-2.
 
 ## Test/validation runs performed
 
@@ -293,3 +314,4 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 | 2026-08-27 | `.venv/bin/python -m ruff check src tests scripts` (Session 6) | All checks passed |
 | 2026-08-27 | `.venv/bin/python -m mypy src --ignore-missing-imports` (Session 6, baseline measurement) | 18 errors, 7 files — documented, not fixed this session |
 | 2026-08-27 | `.venv/bin/python -c "import yaml; ..."` (Session 6, workflow YAML syntax check) | Both `ci.yml`/`eval.yml` valid YAML |
+| 2026-08-27 | `.venv/bin/python -m pytest -q` (Session 7, sanity check — docs-only session) | 112 passed, 54 deselected |
