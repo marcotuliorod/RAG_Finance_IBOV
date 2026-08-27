@@ -10,27 +10,39 @@ extended (this session) to persist results, and it is the number those
 earlier docs recommended re-confirming after the Haiku→Sonnet revert on
 2026-08-24.
 
-## Run record
+## Run records
 
-- **Run timestamp:** 2026-08-27T14:43:06Z
-- **Raw artifact:** [`results/2026-08-27T144306_489140+0000.json`](results/2026-08-27T144306_489140+0000.json)
+Two runs were made this session to get a real (if thin, n=2) measure of
+run-to-run variance for `docs/evaluation/regression.md`'s tolerance
+calibration. A third was attempted and blocked by an Anthropic API billing
+limit — reported honestly rather than omitted; see `regression.md` §"Known
+limitation".
+
+| | Run 1 | Run 2 |
+|---|---|---|
+| Timestamp | 2026-08-27T14:43:06Z | 2026-08-27T14:53:46Z |
+| Raw artifact | [`results/2026-08-27T144306_489140+0000.json`](results/2026-08-27T144306_489140+0000.json) | [`results/2026-08-27T145346_606757+0000.json`](results/2026-08-27T145346_606757+0000.json) |
+| Faithfulness | 0.909 | 0.935 |
+| Relevancy | 0.973 | 0.977 |
+| Error rate | 0.0% | 0.0% |
+| Est. cost | US$ 0.74 | US$ 0.74 |
+
 - **Generator model:** `claude-sonnet-5` (as configured in `.env` / `config/settings.py` default — live-confirmed, see `methodology.md`)
 - **Judge model:** `claude-opus-4-8` (live-confirmed)
 - **Golden dataset:** `golden_v1.json`, version 1.0, 15 cases
 - **Database state:** local Postgres, `ibov_daily_history` 2,644 rows (2016-01-04 → 2026-08-24), `cvm_feed_item` 60 rows
 
-## Results
+## Calibrated baseline (mean of the 2 runs)
 
-| Metric | Value | Threshold | Result |
-|---|---|---|---|
-| Mean faithfulness | **0.909** | ≥ 0.85 | PASS |
-| Mean answer relevancy | **0.973** | ≥ 0.80 | PASS |
-| Error rate | **0.0%** (0/15) | — | — |
-| Mean generation latency | 7.25s / request | — | — |
-| Total generation tokens | 77,301 in / 6,371 out | — | — |
-| Total judge tokens | 40,317 in / 12,971 out | — | — |
-| Estimated total cost (15 cases, gen + judge) | **US$ 0.74** | — | — |
-| **Gate** | | | **PASSED** |
+Recorded in [`baseline.json`](baseline.json) — machine-readable, consumed by
+`scripts/check_regression.py`.
+
+| Metric | Mean | Stdev (n=2) | Threshold | Result |
+|---|---|---|---|---|
+| Faithfulness | **0.922** | 0.018 | ≥ 0.85 | PASS |
+| Answer relevancy | **0.975** | 0.003 | ≥ 0.80 | PASS |
+| Error rate | **0.0%** | — | — | — |
+| **Gate** | | | | **PASSED** (both runs) |
 
 ## Comparison to the previously-documented (unpersisted) figures
 
@@ -76,11 +88,11 @@ JSON artifact linked above.
 
 ## What this baseline is (and isn't) good for
 
-This is a single run, not a distribution — no variance/confidence interval
-is computed across repeated runs (the LLM judge is not deterministic
-run-to-run). Session 3's regression-testing work is expected to define a
-tolerance band around this number (not a single-run cliff-edge threshold)
-before wiring a CI gate on top of it — see
-`docs/audit/IMPLEMENTATION_PROGRESS.md` for that session's scope. This
-document intentionally stops at "here is what was measured," not "here is
-the pass/fail band for future runs."
+n=2 is enough to build and unit-test a working regression check (see
+`docs/evaluation/regression.md`), and enough to prove — with the actual
+historical Haiku numbers fed through the real check logic — that it would
+have caught the known regression with wide margin. It is **not** enough for
+a statistically confident tolerance band; `baseline.json` says so explicitly
+and recommends recalibrating with ≥5 runs once more API budget is
+available. This document intentionally reports what was measured rather
+than overstating the confidence behind it.

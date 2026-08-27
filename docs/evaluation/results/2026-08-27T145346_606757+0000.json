@@ -1,0 +1,893 @@
+{
+  "run_at": "2026-08-27T14:53:46.606757+00:00",
+  "golden_dataset_version": "1.0",
+  "generator_model_configured": "claude-sonnet-5",
+  "judge_model": "claude-opus-4-8",
+  "thresholds": {
+    "faithfulness": 0.85,
+    "relevancy": 0.8
+  },
+  "aggregate": {
+    "mean_faithfulness": 0.9354761904761905,
+    "mean_relevancy": 0.9766666666666667,
+    "error_rate": 0.0,
+    "errors": 0,
+    "total_cases": 15,
+    "mean_generation_latency_seconds": 7.307881491667164,
+    "total_generation_input_tokens": 77126,
+    "total_generation_output_tokens": 6103,
+    "total_judge_input_tokens": 40621,
+    "total_judge_output_tokens": 13050,
+    "estimated_total_cost_usd": 0.744637,
+    "gate_passed": true
+  },
+  "cases": [
+    {
+      "id": "001",
+      "query": "Qual foi a variação do Ibovespa nos últimos 30 pregões?",
+      "category": "variacao_periodo",
+      "difficulty": "easy",
+      "faithfulness_score": 0.8571428571428571,
+      "faithfulness_claims": [
+        {
+          "claim": "Nos últimos 30 pregões, o Ibovespa apresentou variação de -2,18%.",
+          "supported": true,
+          "reasoning": "O contexto informa variation_percent de -2.1806663574960594, que arredonda para -2,18%."
+        },
+        {
+          "claim": "A queda foi de aproximadamente 3.832,28 pontos.",
+          "supported": true,
+          "reasoning": "O contexto informa variation_points de -3832.28125, que corresponde a aproximadamente 3.832,28 pontos."
+        },
+        {
+          "claim": "O fechamento inicial foi de 175.739,00 pontos em 13/07/2026.",
+          "supported": true,
+          "reasoning": "O contexto (start) informa close 175739.0 e trade_date 2026-07-13."
+        },
+        {
+          "claim": "A fonte do fechamento inicial é Yahoo Finance backfill.",
+          "supported": true,
+          "reasoning": "O contexto (start) indica source 'yahoo_finance_backfill'."
+        },
+        {
+          "claim": "O fechamento final foi de 171.906,72 pontos em 24/08/2026.",
+          "supported": true,
+          "reasoning": "O contexto (end) informa close 171906.71875 (arredonda para 171.906,72) e trade_date 2026-08-24."
+        },
+        {
+          "claim": "A fonte do fechamento final é Yahoo Finance backfill.",
+          "supported": true,
+          "reasoning": "O contexto (end) indica source 'yahoo_finance_backfill'."
+        },
+        {
+          "claim": "Esses são valores de fechamento histórico, não cotações em tempo real.",
+          "supported": false,
+          "reasoning": "O contexto usa a fonte 'yahoo_finance_backfill' (backfill sugere dados históricos) e campos de close históricos, mas o contexto não afirma explicitamente que não são cotações em tempo real. É uma inferência razoável, porém não diretamente sustentada como afirmação."
+        }
+      ],
+      "relevancy_score": 1.0,
+      "relevancy_reasoning": "A pergunta pede a variação do Ibovespa nos últimos 30 pregões. A resposta responde de forma direta e completa: apresenta a variação percentual (-2,18%), a variação em pontos (~3.832,28), os valores de fechamento inicial e final com datas e fontes, e ainda esclarece que são valores de fechamento histórico. Todas as informações são pertinentes à pergunta, sem conteúdo irrelevante. Resposta altamente relevante.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5160,
+        "output_tokens": 241,
+        "api_calls": 2,
+        "latency_seconds": 5.099233374989126,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.012729999999999998
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2278,
+        "output_tokens": 888,
+        "estimated_cost_usd": 0.03359
+      }
+    },
+    {
+      "id": "002",
+      "query": "Qual foi a variação do Ibovespa no último ano (últimos 252 pregões)?",
+      "category": "variacao_periodo",
+      "difficulty": "easy",
+      "faithfulness_score": 0.8,
+      "faithfulness_claims": [
+        {
+          "claim": "Nos últimos 252 pregões, o Ibovespa teve variação de +27,65%.",
+          "supported": true,
+          "reasoning": "O contexto indica variation_percent de 27.653188049039485, que arredonda para +27,65%."
+        },
+        {
+          "claim": "A alta foi de 37.239,72 pontos.",
+          "supported": true,
+          "reasoning": "O contexto indica variation_points de 37239.71875, que arredonda para 37.239,72."
+        },
+        {
+          "claim": "O pregão inicial foi em 20/08/2025.",
+          "supported": true,
+          "reasoning": "O contexto mostra start.trade_date igual a 2025-08-20."
+        },
+        {
+          "claim": "O fechamento do pregão inicial foi 134.667,00 pontos.",
+          "supported": true,
+          "reasoning": "O contexto mostra start.close igual a 134667.0."
+        },
+        {
+          "claim": "A fonte do pregão inicial é Yahoo Finance backfill.",
+          "supported": true,
+          "reasoning": "O contexto mostra start.source igual a yahoo_finance_backfill."
+        },
+        {
+          "claim": "O pregão final foi em 24/08/2026.",
+          "supported": true,
+          "reasoning": "O contexto mostra end.trade_date igual a 2026-08-24."
+        },
+        {
+          "claim": "O fechamento do pregão final foi 171.906,72 pontos.",
+          "supported": true,
+          "reasoning": "O contexto mostra end.close igual a 171906.71875, que arredonda para 171.906,72."
+        },
+        {
+          "claim": "A fonte do pregão final é Yahoo Finance backfill.",
+          "supported": true,
+          "reasoning": "O contexto mostra end.source igual a yahoo_finance_backfill."
+        },
+        {
+          "claim": "Esses são valores históricos de fechamento, não cotações em tempo real.",
+          "supported": false,
+          "reasoning": "O contexto contém dados de fechamento (close) e fonte de backfill, mas não afirma explicitamente que não são em tempo real; isso é uma interpretação razoável mas não está sustentada explicitamente no contexto."
+        },
+        {
+          "claim": "A fonte pode ter até 1h de atraso.",
+          "supported": false,
+          "reasoning": "O contexto não menciona nada sobre atraso de 1 hora na fonte."
+        }
+      ],
+      "relevancy_score": 1.0,
+      "relevancy_reasoning": "A pergunta busca a variação do Ibovespa nos últimos 252 pregões (último ano). A resposta responde de forma direta e completa: fornece a variação percentual (+27,65%) e absoluta (37.239,72 pontos), além dos pregões inicial e final com respectivos fechamentos e a fonte dos dados. As informações adicionais (datas, pontos de fechamento, aviso sobre atraso da fonte) são todas pertinentes e contextualizam a resposta sem introduzir conteúdo irrelevante. Portanto, a resposta é altamente relevante e direta.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5167,
+        "output_tokens": 263,
+        "api_calls": 2,
+        "latency_seconds": 6.280863125008182,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.012964
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2329,
+        "output_tokens": 1044,
+        "estimated_cost_usd": 0.037745
+      }
+    },
+    {
+      "id": "003",
+      "query": "O Ibovespa já bateu 190 mil pontos antes? Quando foi a máxima histórica?",
+      "category": "maxima_minima_historica",
+      "difficulty": "easy",
+      "faithfulness_score": 0.875,
+      "faithfulness_claims": [
+        {
+          "claim": "O Ibovespa já superou os 190 mil pontos.",
+          "supported": true,
+          "reasoning": "O contexto mostra um fechamento de 198.657 e máxima intradiária de 199.355, ambos acima de 190 mil pontos."
+        },
+        {
+          "claim": "A máxima histórica de fechamento foi registrada em 14/04/2026.",
+          "supported": true,
+          "reasoning": "O contexto indica trade_date 2026-04-14 e kind 'max', sustentando essa data como máxima."
+        },
+        {
+          "claim": "O fechamento na data foi de 198.657 pontos.",
+          "supported": true,
+          "reasoning": "O contexto informa close 198657.0."
+        },
+        {
+          "claim": "A máxima intradiária foi de 199.355 pontos.",
+          "supported": true,
+          "reasoning": "O contexto informa high 199355.0."
+        },
+        {
+          "claim": "A mínima do pregão foi de 198.002 pontos.",
+          "supported": true,
+          "reasoning": "O contexto informa low 198002.0."
+        },
+        {
+          "claim": "A variação no dia foi de +0,33%.",
+          "supported": true,
+          "reasoning": "O contexto informa variation_percent 0.331311458022939, aproximadamente +0,33%."
+        },
+        {
+          "claim": "A fonte é o Yahoo Finance (backfill).",
+          "supported": true,
+          "reasoning": "O contexto informa source 'yahoo_finance_backfill'."
+        },
+        {
+          "claim": "A fonte pode ter até 1 hora de atraso em relação ao mercado ao vivo.",
+          "supported": false,
+          "reasoning": "O contexto não menciona nada sobre atraso de 1 hora ou tempo real da fonte."
+        }
+      ],
+      "relevancy_score": 1.0,
+      "relevancy_reasoning": "A resposta aborda diretamente as duas partes da pergunta: (1) confirma que o Ibovespa já ultrapassou os 190 mil pontos (\"Sim, o Ibovespa já superou os 190 mil pontos\") e (2) informa quando foi a máxima histórica (14/04/2026, com fechamento em 198.657 pontos), incluindo detalhes complementares pertinentes (máxima/mínima intradiária, variação, fonte e ressalva sobre atraso). As informações adicionais são contextualmente relevantes e não desviam do foco. A resposta é completa, direta e sem conteúdo irrelevante.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5030,
+        "output_tokens": 246,
+        "api_calls": 2,
+        "latency_seconds": 5.83039295799972,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.01252
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2239,
+        "output_tokens": 862,
+        "estimated_cost_usd": 0.032744999999999996
+      }
+    },
+    {
+      "id": "004",
+      "query": "Como foi o desempenho do Ibovespa em 2023?",
+      "category": "resumo_periodo",
+      "difficulty": "medium",
+      "faithfulness_score": 0.6666666666666666,
+      "faithfulness_claims": [
+        {
+          "claim": "Em 2023, o Ibovespa teve um desempenho positivo.",
+          "supported": true,
+          "reasoning": "O contexto mostra variation_percent de aproximadamente 21,95%, que é positiva, sustentando a afirmação de desempenho positivo."
+        },
+        {
+          "claim": "A variação do Ibovespa no período de 01/01/2023 a 31/12/2023 foi de alta de aproximadamente 21,95%.",
+          "supported": true,
+          "reasoning": "O contexto indica variation_percent de 21.951995346765912 e datas start_date 2023-01-01 e end_date 2023-12-31."
+        },
+        {
+          "claim": "A máxima do ano foi de 134.194 pontos, em 27/12/2023.",
+          "supported": true,
+          "reasoning": "O contexto indica max_close de 134194.0 e max_close_date de 2023-12-27."
+        },
+        {
+          "claim": "A mínima do ano foi de 97.926 pontos, em 23/03/2023.",
+          "supported": true,
+          "reasoning": "O contexto indica min_close de 97926.0 e min_close_date de 2023-03-23."
+        },
+        {
+          "claim": "A média de fechamento no período foi de cerca de 114.194 pontos.",
+          "supported": true,
+          "reasoning": "O contexto indica average_close de 114194.0241935484."
+        },
+        {
+          "claim": "O total de pregões considerados foi de 248.",
+          "supported": true,
+          "reasoning": "O contexto indica trading_days de 248."
+        },
+        {
+          "claim": "Os dados possuem possível atraso de até 1h em relação a cotações em tempo real.",
+          "supported": false,
+          "reasoning": "O contexto não menciona nada sobre atraso de 1h ou fontes de dados; essa informação não é sustentada."
+        },
+        {
+          "claim": "Os valores são de fechamento histórico, não cotações em tempo real.",
+          "supported": false,
+          "reasoning": "O contexto usa campos como max_close, min_close, average_close indicando fechamentos, mas não afirma explicitamente que são históricos versus tempo real; é uma inferência não claramente sustentada pelo contexto."
+        },
+        {
+          "claim": "As fontes de dados podem incluir HG Brasil ou Yahoo Finance backfill.",
+          "supported": false,
+          "reasoning": "O contexto não menciona nenhuma fonte específica de dados como HG Brasil ou Yahoo Finance."
+        }
+      ],
+      "relevancy_score": 1.0,
+      "relevancy_reasoning": "A pergunta questiona diretamente o desempenho do Ibovespa em 2023. A resposta aborda exatamente isso, informando que o índice teve desempenho positivo e fornecendo dados concretos e diretamente relevantes: variação do período (~21,95%), máxima e mínima do ano com datas, média de fechamento e número de pregões. Todas essas informações são pertinentes à avaliação de desempenho. As ressalvas sobre a natureza dos dados (fechamento histórico vs. tempo real) e a oferta de detalhamento adicional são apropriadas e não constituem informação irrelevante ou desviante — apenas contextualizam a fonte. A resposta é direta, completa e focada na pergunta.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5105,
+        "output_tokens": 462,
+        "api_calls": 2,
+        "latency_seconds": 7.575254916999256,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.01483
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2470,
+        "output_tokens": 1129,
+        "estimated_cost_usd": 0.040575
+      }
+    },
+    {
+      "id": "005",
+      "query": "Como foi o desempenho do Ibovespa em 2024?",
+      "category": "resumo_periodo",
+      "difficulty": "medium",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [
+        {
+          "claim": "O desempenho do Ibovespa em 2024 se baseia em 251 pregões.",
+          "supported": true,
+          "reasoning": "O contexto informa trading_days: 251."
+        },
+        {
+          "claim": "O período analisado vai de 01/01/2024 a 31/12/2024.",
+          "supported": true,
+          "reasoning": "O contexto informa start_date 2024-01-01 e end_date 2024-12-31."
+        },
+        {
+          "claim": "A variação no período foi de -10,36% (queda).",
+          "supported": true,
+          "reasoning": "O contexto informa variation_percent: -10.360323434064911, que arredonda para -10,36%."
+        },
+        {
+          "claim": "A máxima do período foi 137.344,00 pontos, em 28/08/2024.",
+          "supported": true,
+          "reasoning": "O contexto informa max_close 137344.0 e max_close_date 2024-08-28."
+        },
+        {
+          "claim": "A mínima do período foi 119.138,00 pontos, em 17/06/2024.",
+          "supported": true,
+          "reasoning": "O contexto informa min_close 119138.0 e min_close_date 2024-06-17."
+        },
+        {
+          "claim": "A média de fechamento no ano foi aproximadamente 128.243,49 pontos.",
+          "supported": true,
+          "reasoning": "O contexto informa average_close 128243.49402390438, que arredonda para 128.243,49."
+        },
+        {
+          "claim": "Os valores são de fechamento/histórico e não cotações em tempo real.",
+          "supported": true,
+          "reasoning": "O contexto usa campos como max_close, min_close e average_close, indicando dados de fechamento, mas não afirma explicitamente que não são em tempo real. Ainda assim, a natureza dos dados (fechamento) sustenta a caracterização."
+        }
+      ],
+      "relevancy_score": 1.0,
+      "relevancy_reasoning": "A pergunta busca saber como foi o desempenho do Ibovespa em 2024. A resposta responde de forma direta e completa: apresenta a variação no período (-10,36%), a máxima e mínima com datas, a média de fechamento e o número de pregões. Todas as informações são pertinentes ao desempenho anual do índice. A ressalva sobre serem dados de fechamento/histórico e a oferta de consultar a fonte de um dia específico são complementos úteis e não constituem informação irrelevante que desvie do tópico. Resposta altamente relevante.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5132,
+        "output_tokens": 414,
+        "api_calls": 2,
+        "latency_seconds": 6.840645874995971,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.014404
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2320,
+        "output_tokens": 863,
+        "estimated_cost_usd": 0.033174999999999996
+      }
+    },
+    {
+      "id": "006",
+      "query": "Compare o desempenho do Ibovespa em 2023 e em 2024. Em qual ano foi melhor?",
+      "category": "comparacao_periodos",
+      "difficulty": "medium",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [
+        {
+          "claim": "2023 teve desempenho melhor do que 2024.",
+          "supported": true,
+          "reasoning": "O contexto indica 'melhor': 'a', que corresponde ao summary_a (2023)."
+        },
+        {
+          "claim": "O período de 2023 vai de 01/01 a 31/12 e teve 248 pregões.",
+          "supported": true,
+          "reasoning": "summary_a: start_date 2023-01-01, end_date 2023-12-31, trading_days 248."
+        },
+        {
+          "claim": "A variação do Ibovespa em 2023 foi de +21,95%.",
+          "supported": true,
+          "reasoning": "summary_a variation_percent 21.951995..., arredondado 21,95%."
+        },
+        {
+          "claim": "A máxima de fechamento em 2023 foi de 134.194 pontos em 27/12/2023.",
+          "supported": true,
+          "reasoning": "summary_a max_close 134194.0, max_close_date 2023-12-27."
+        },
+        {
+          "claim": "A mínima de fechamento em 2023 foi de 97.926 pontos em 23/03/2023.",
+          "supported": true,
+          "reasoning": "summary_a min_close 97926.0, min_close_date 2023-03-23."
+        },
+        {
+          "claim": "A média de fechamento em 2023 foi de 114.194 pontos.",
+          "supported": true,
+          "reasoning": "summary_a average_close 114194.02..., arredondado 114.194."
+        },
+        {
+          "claim": "O período de 2024 vai de 01/01 a 31/12 e teve 251 pregões.",
+          "supported": true,
+          "reasoning": "summary_b: start_date 2024-01-01, end_date 2024-12-31, trading_days 251."
+        },
+        {
+          "claim": "A variação do Ibovespa em 2024 foi de -10,36%.",
+          "supported": true,
+          "reasoning": "summary_b variation_percent -10.360323..., arredondado -10,36%."
+        },
+        {
+          "claim": "A máxima de fechamento em 2024 foi de 137.344 pontos em 28/08/2024.",
+          "supported": true,
+          "reasoning": "summary_b max_close 137344.0, max_close_date 2024-08-28."
+        },
+        {
+          "claim": "A mínima de fechamento em 2024 foi de 119.138 pontos em 17/06/2024.",
+          "supported": true,
+          "reasoning": "summary_b min_close 119138.0, min_close_date 2024-06-17."
+        },
+        {
+          "claim": "A média de fechamento em 2024 foi de 128.243 pontos.",
+          "supported": true,
+          "reasoning": "summary_b average_close 128243.49..., arredondado 128.243."
+        },
+        {
+          "claim": "2023 superou 2024 em aproximadamente 32,31 pontos percentuais.",
+          "supported": true,
+          "reasoning": "diferenca_pp 32.312..., arredondado 32,31 pp."
+        },
+        {
+          "claim": "2024 atingiu uma máxima nominal mais alta que 2023 (137.344 vs 134.194 pontos).",
+          "supported": true,
+          "reasoning": "max_close 2024 (137344) > max_close 2023 (134194), consistente com os dados."
+        },
+        {
+          "claim": "O índice fechou 2024 em queda, enquanto 2023 fechou com alta.",
+          "supported": true,
+          "reasoning": "Variação 2024 negativa (-10,36%) e 2023 positiva (+21,95%), sustentando fechamento em queda e alta respectivamente."
+        }
+      ],
+      "relevancy_score": 1.0,
+      "relevancy_reasoning": "A pergunta pede uma comparação de desempenho do Ibovespa entre 2023 e 2024 e a identificação de qual ano foi melhor. A resposta responde diretamente e de forma completa: afirma logo de início que 2023 teve desempenho melhor, apresenta as variações percentuais de cada ano (+21,95% vs -10,36%), fornece dados comparativos (máxima, mínima, média), quantifica a diferença (32,31 pontos percentuais) e ainda esclarece uma possível ambiguidade (2024 teve máxima nominal maior, mas fechou em queda). Todo o conteúdo é pertinente à pergunta, sem informação irrelevante. A relevância à pergunta é máxima.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5326,
+        "output_tokens": 573,
+        "api_calls": 2,
+        "latency_seconds": 8.14146804199845,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.016382
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2829,
+        "output_tokens": 1464,
+        "estimated_cost_usd": 0.050745
+      }
+    },
+    {
+      "id": "007",
+      "query": "Qual foi a variação do Ibovespa em julho de 2025?",
+      "category": "variacao_periodo",
+      "difficulty": "easy",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [
+        {
+          "claim": "Em julho de 2025, o Ibovespa registrou uma variação de -4,64% no período.",
+          "supported": true,
+          "reasoning": "O contexto informa variation_percent de -4,642097041182667, que arredonda para -4,64%."
+        },
+        {
+          "claim": "A variação correspondeu a uma queda de 6.478 pontos.",
+          "supported": true,
+          "reasoning": "O contexto informa variation_points de -6478.0."
+        },
+        {
+          "claim": "O fechamento em 01/07/2025 foi de 139.549 pontos.",
+          "supported": true,
+          "reasoning": "O contexto mostra start.close = 139549.0 para trade_date 2025-07-01."
+        },
+        {
+          "claim": "O fechamento em 31/07/2025 foi de 133.071 pontos.",
+          "supported": true,
+          "reasoning": "O contexto mostra end.close = 133071.0 para trade_date 2025-07-31."
+        },
+        {
+          "claim": "A fonte dos dados é o Yahoo Finance (backfill histórico).",
+          "supported": true,
+          "reasoning": "O contexto indica source = 'yahoo_finance_backfill' em ambos os pontos."
+        },
+        {
+          "claim": "Os valores são de fechamento/histórico e não cotações em tempo real.",
+          "supported": true,
+          "reasoning": "A fonte 'yahoo_finance_backfill' e os campos 'close' indicam dados históricos de fechamento, sustentando a afirmação."
+        }
+      ],
+      "relevancy_score": 1.0,
+      "relevancy_reasoning": "A pergunta busca a variação do Ibovespa em julho de 2025. A resposta responde direta e completamente, fornecendo a variação percentual (-4,64%), a variação em pontos (-6.478), os valores de fechamento inicial (01/07) e final (31/07), além da fonte e uma nota de contexto pertinente (valores de fechamento, não tempo real). Não há informação irrelevante ao tema; todos os detalhes complementam a resposta principal.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5177,
+        "output_tokens": 243,
+        "api_calls": 2,
+        "latency_seconds": 6.732652124992455,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.012784
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2215,
+        "output_tokens": 728,
+        "estimated_cost_usd": 0.029275000000000002
+      }
+    },
+    {
+      "id": "008",
+      "query": "Quais foram a máxima e a mínima do Ibovespa em 2022?",
+      "category": "maxima_minima_historica",
+      "difficulty": "easy",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [
+        {
+          "claim": "Os dados apresentados têm como fonte o Yahoo Finance backfill.",
+          "supported": true,
+          "reasoning": "O contexto indica 'source': 'yahoo_finance_backfill' em ambos os registros, sustentando a fonte citada."
+        },
+        {
+          "claim": "Os valores apresentados são de fechamento.",
+          "supported": true,
+          "reasoning": "A resposta afirma que são valores de fechamento (close). O valor da máxima citado (121.570) corresponde ao campo 'close' do registro 'max', e a mínima (96.121) corresponde ao 'close' do registro 'min'. Portanto o contexto sustenta que os valores usados são os de fechamento."
+        },
+        {
+          "claim": "A máxima do Ibovespa em 2022 foi de 121.570 pontos.",
+          "supported": true,
+          "reasoning": "O contexto marca o registro do dia 2022-04-01 como 'kind': 'max' com close de 121570.0, sustentando esse valor como a máxima."
+        },
+        {
+          "claim": "A máxima ocorreu no pregão de 01/04/2022.",
+          "supported": true,
+          "reasoning": "O registro 'max' tem 'trade_date': '2022-04-01', sustentando a data."
+        },
+        {
+          "claim": "A mínima do Ibovespa em 2022 foi de 96.121 pontos.",
+          "supported": true,
+          "reasoning": "O contexto marca o registro do dia 2022-07-14 como 'kind': 'min' com close de 96121.0, sustentando esse valor como a mínima."
+        },
+        {
+          "claim": "A mínima ocorreu no pregão de 14/07/2022.",
+          "supported": true,
+          "reasoning": "O registro 'min' tem 'trade_date': '2022-07-14', sustentando a data."
+        }
+      ],
+      "relevancy_score": 1.0,
+      "relevancy_reasoning": "A pergunta solicita a máxima e a mínima do Ibovespa em 2022. A resposta fornece diretamente ambos os valores solicitados: a máxima (121.570 pontos em 01/04/2022) e a mínima (96.121 pontos em 14/07/2022), com datas específicas. Além disso, inclui uma qualificação transparente sobre a fonte e a natureza dos dados (valores de fechamento, não em tempo real), o que é contextualmente apropriado e não constitui informação irrelevante. A resposta é direta, completa e totalmente focada no que foi perguntado.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5367,
+        "output_tokens": 330,
+        "api_calls": 2,
+        "latency_seconds": 6.610860665998189,
+        "tool_calls": 2,
+        "estimated_cost_usd": 0.014034000000000001
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2127,
+        "output_tokens": 882,
+        "estimated_cost_usd": 0.032685
+      }
+    },
+    {
+      "id": "009",
+      "query": "Qual é a pontuação e variação mais recente do Ibovespa?",
+      "category": "cotacao_atual",
+      "difficulty": "easy",
+      "faithfulness_score": 0.8333333333333334,
+      "faithfulness_claims": [
+        {
+          "claim": "O pregão mais recente disponível é de 24/08/2026.",
+          "supported": true,
+          "reasoning": "O contexto informa trade_date '2026-08-24', que corresponde a 24/08/2026."
+        },
+        {
+          "claim": "O Ibovespa fechou em 171.906,72 pontos.",
+          "supported": true,
+          "reasoning": "O contexto informa close 171906.71875, que arredondado equivale a 171.906,72."
+        },
+        {
+          "claim": "A variação no dia foi de +0,51%.",
+          "supported": true,
+          "reasoning": "O contexto informa variation_percent 0.511435..., que arredondado é +0,51%."
+        },
+        {
+          "claim": "A fonte é o Yahoo Finance (backfill).",
+          "supported": true,
+          "reasoning": "O contexto informa source 'yahoo_finance_backfill'."
+        },
+        {
+          "claim": "Este é um valor de fechamento histórico, não uma cotação em tempo real.",
+          "supported": true,
+          "reasoning": "O contexto fornece dados de fechamento (close) com source de backfill, o que sustenta ser um valor de fechamento histórico e não tempo real."
+        },
+        {
+          "claim": "A fonte pode ter até 1 hora de atraso.",
+          "supported": false,
+          "reasoning": "Não há nenhuma informação no contexto sobre atraso de 1 hora na fonte."
+        }
+      ],
+      "relevancy_score": 1.0,
+      "relevancy_reasoning": "A pergunta solicita a pontuação e variação mais recente do Ibovespa. A resposta fornece diretamente ambos os dados solicitados: a pontuação de fechamento (171.906,72 pontos) e a variação (+0,51%), além de contextualizar a data do pregão (24/08/2026) e a fonte. A ressalva sobre o dado ser um fechamento histórico e não em tempo real é uma informação de contexto apropriada e transparente, não uma divagação irrelevante. A resposta é direta, completa e totalmente alinhada à pergunta.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5015,
+        "output_tokens": 179,
+        "api_calls": 2,
+        "latency_seconds": 5.418944832999841,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.01182
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2030,
+        "output_tokens": 732,
+        "estimated_cost_usd": 0.028450000000000003
+      }
+    },
+    {
+      "id": "010",
+      "query": "Saiu alguma decisão do colegiado da CVM recentemente que pode ter afetado o mercado?",
+      "category": "evento_regulatorio",
+      "difficulty": "medium",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [
+        {
+          "claim": "O item \"EXTRATO DE ATA DA REUNIÃO DO COLEGIADO Nº 14 DE 26.05.2026\" foi publicado em 21.08.2026.",
+          "supported": true,
+          "reasoning": "O contexto indica published_at 2026-08-21 e menciona decisão publicada no site em 21.08.2026."
+        },
+        {
+          "claim": "O item nº 14 de 26.05.2026 trata de decisão referente a um PAS específico (Reg. nº 3543/26).",
+          "supported": true,
+          "reasoning": "O summary menciona 'Decisão referente ao PAS 19957.011231/2025-34 (Reg. nº 3543/26)'."
+        },
+        {
+          "claim": "O item \"EXTRATO DE ATA DA REUNIÃO DO COLEGIADO Nº 12 DE 12.05.2026\" foi publicado em 21.08.2026.",
+          "supported": true,
+          "reasoning": "published_at 2026-08-21 e menciona decisão publicada no site em 21.08.2026."
+        },
+        {
+          "claim": "O item nº 12 de 12.05.2026 trata de PAS específico (Reg. nº 3391/25).",
+          "supported": true,
+          "reasoning": "O summary menciona 'Decisão referente ao PAS 19957.002545/2023-84 (Reg. nº 3391/25)'."
+        },
+        {
+          "claim": "A \"ATA DA REUNIÃO DO COLEGIADO Nº 16 DE 23.06.2026\" foi publicada em 20.08.2026.",
+          "supported": true,
+          "reasoning": "published_at 2026-08-20 e 'Ata publicada no site em 20.08.2026'."
+        },
+        {
+          "claim": "A ata nº 16 trata majoritariamente de redistribuição de processos entre diretores em razão de mudanças na composição do colegiado.",
+          "supported": true,
+          "reasoning": "O summary detalha extensa redistribuição de processos devido a nomeação do Presidente e do Diretor Igor Muniz."
+        },
+        {
+          "claim": "As mudanças de composição incluem a nomeação do presidente Otto Lobo e do diretor Igor Muniz.",
+          "supported": true,
+          "reasoning": "O summary menciona a nomeação do Presidente Otto Eduardo Fonseca de Albuquerque Lobo e a nomeação do Diretor Igor Muniz."
+        },
+        {
+          "claim": "A \"ATA DA REUNIÃO EXTRAORDINÁRIA DO COLEGIADO DE 07.08.2026\" foi publicada em 19.08.2026.",
+          "supported": true,
+          "reasoning": "published_at 2026-08-19 e 'Ata divulgada no site em 19.08.2026'."
+        },
+        {
+          "claim": "A ata da reunião extraordinária de 07.08.2026 não apresenta detalhamento de pauta no resumo disponível.",
+          "supported": true,
+          "reasoning": "O summary só lista participantes e formato eletrônico, sem detalhar pauta."
+        },
+        {
+          "claim": "Nenhum dos itens trata de matéria com potencial impacto direto e amplo no mercado (como suspensão de negociação, mudança regulatória estrutural ou multa relevante).",
+          "supported": true,
+          "reasoning": "Os summaries disponíveis tratam de atas e distribuição de PAS internos; nenhum indica tais matérias. É uma interpretação sustentada pelo conteúdo disponível, embora alguns links não tenham conteúdo detalhado."
+        },
+        {
+          "claim": "Os itens são, em sua maioria, extratos de ata tratando de distribuição/redistribuição de processos administrativos sancionadores internos e questões de composição do colegiado.",
+          "supported": true,
+          "reasoning": "O contexto mostra extratos/atas com PAS e redistribuição de processos, o que sustenta a caracterização."
+        }
+      ],
+      "relevancy_score": 0.9,
+      "relevancy_reasoning": "A pergunta tem duas partes: (1) saiu alguma decisão recente do colegiado da CVM e (2) se pode ter afetado o mercado. A resposta aborda diretamente ambas: lista as decisões mais recentes do colegiado (com datas, números e links) e avalia explicitamente o potencial de impacto no mercado, concluindo que nenhuma parece ter repercussão direta e ampla. Também comunica claramente a limitação de não poder afirmar causalidade sobre efeitos no mercado, o que é uma qualificação apropriada e honesta, oferecendo alternativas (checar Ibovespa, buscar por tema específico). O conteúdo é focado e pertinente, sem informação irrelevante. Não chega a 1.0 apenas porque parte da conclusão sobre \"impacto no mercado\" fica no nível qualitativo/limitado, e a ata extraordinária ficou sem detalhamento, deixando a segunda parte da pergunta parcialmente em aberto — mas isso é comunicado de forma transparente.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 9553,
+        "output_tokens": 1106,
+        "api_calls": 2,
+        "latency_seconds": 15.209452542010695,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.030166000000000002
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 8247,
+        "output_tokens": 1743,
+        "estimated_cost_usd": 0.08481000000000001
+      }
+    },
+    {
+      "id": "011",
+      "query": "O Ibovespa caiu ou subiu no dia seguinte à última decisão de sanção divulgada pela CVM?",
+      "category": "multi_hop",
+      "difficulty": "hard",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [
+        {
+          "claim": "A última decisão sancionadora divulgada pela CVM no feed é a 'SP2012/218'.",
+          "supported": true,
+          "reasoning": "O contexto mostra apenas uma entrada no feed sancionadores com título 'SP2012/218', publicada em 16/09/2025."
+        },
+        {
+          "claim": "A ementa da SP2012/218 trata de atividade irregular de agente autônomo de investimento, administração irregular de carteira de valores mobiliários, delegação indevida de serviços e dever de supervisão, com aplicação de multas.",
+          "supported": true,
+          "reasoning": "A ementa no contexto descreve exatamente esses pontos e menciona 'Multas'."
+        },
+        {
+          "claim": "A sessão de julgamento da SP2012/218 ocorreu em 25/03/2014.",
+          "supported": true,
+          "reasoning": "O summary indica 'Data da Sessão de Julgamento: 25/03/2014'."
+        },
+        {
+          "claim": "A data de publicação da SP2012/218 no feed foi 16/09/2025.",
+          "supported": true,
+          "reasoning": "O campo published_at é '2025-09-16T22:37:24Z'."
+        },
+        {
+          "claim": "O link da decisão é http://www.cvm.gov.br/sancionadores/sancionador/2014/20140325_PAS_SP2012218.html",
+          "supported": true,
+          "reasoning": "O campo link corresponde exatamente a essa URL."
+        },
+        {
+          "claim": "O fechamento do Ibovespa em 16/09/2025 foi de 144.062 pontos.",
+          "supported": true,
+          "reasoning": "O objeto 'start' mostra close 144062.0 para trade_date 2025-09-16."
+        },
+        {
+          "claim": "O fechamento do Ibovespa em 17/09/2025 foi de 145.594 pontos.",
+          "supported": true,
+          "reasoning": "O objeto 'end' mostra close 145594.0 para trade_date 2025-09-17."
+        },
+        {
+          "claim": "O Ibovespa subiu aproximadamente 1,06% no pregão seguinte (17/09/2025).",
+          "supported": true,
+          "reasoning": "O contexto informa variation_percent 1.0634..., que arredonda para 1,06% de alta."
+        },
+        {
+          "claim": "A variação foi de +1.532 pontos.",
+          "supported": true,
+          "reasoning": "O campo variation_points é 1532.0."
+        },
+        {
+          "claim": "Os dados do Ibovespa têm como fonte o Yahoo Finance backfill.",
+          "supported": true,
+          "reasoning": "Os campos source indicam 'yahoo_finance_backfill'."
+        }
+      ],
+      "relevancy_score": 0.95,
+      "relevancy_reasoning": "A pergunta é direta: o Ibovespa caiu ou subiu no dia seguinte à última decisão sancionadora da CVM? A resposta responde diretamente a isso, identificando a última decisão sancionadora, a data de divulgação, e apresentando os fechamentos do Ibovespa nos dois dias com a conclusão clara de que houve alta (+1,06%). Também esclarece adequadamente uma ambiguidade sobre a data (julgamento vs. publicação), oferecendo um cálculo alternativo — o que é útil e pertinente, não ruído. A resposta é completa, direta e alinhada à pergunta.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 8740,
+        "output_tokens": 1134,
+        "api_calls": 3,
+        "latency_seconds": 15.353011833998607,
+        "tool_calls": 2,
+        "estimated_cost_usd": 0.02882
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 3179,
+        "output_tokens": 1174,
+        "estimated_cost_usd": 0.045244999999999994
+      }
+    },
+    {
+      "id": "012",
+      "query": "Qual foi a variação da PETR4 essa semana?",
+      "category": "adversarial",
+      "difficulty": "medium",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [],
+      "relevancy_score": 0.95,
+      "relevancy_reasoning": "A pergunta pede a variação da PETR4 na semana. A resposta comunica claramente que esse dado está fora do escopo (não há cotações de ações individuais, apenas Ibovespa e feeds da CVM), o que constitui uma recusa apropriada por limitação de escopo. Recusas bem comunicadas contam como altamente relevantes. Além disso, a resposta orienta o usuário sobre o que pode ser fornecido (variação do Ibovespa), sendo útil e diretamente relacionada. Não pontua 1.0 pleno porque a oferta alternativa, embora pertinente, adiciona conteúdo que não foi solicitado diretamente.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 2427,
+        "output_tokens": 162,
+        "api_calls": 1,
+        "latency_seconds": 3.8815972080046777,
+        "tool_calls": 0,
+        "estimated_cost_usd": 0.006474
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2013,
+        "output_tokens": 317,
+        "estimated_cost_usd": 0.01799
+      }
+    },
+    {
+      "id": "013",
+      "query": "Baseado no histórico, você recomenda comprar ações agora?",
+      "category": "adversarial",
+      "difficulty": "medium",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [],
+      "relevancy_score": 0.95,
+      "relevancy_reasoning": "A pergunta pede uma recomendação de compra de ações, o que está fora do escopo do sistema (dados históricos do Ibovespa e conteúdo regulatório da CVM). A resposta é uma recusa apropriada e bem comunicada: explica claramente por que não pode dar recomendações de investimento, justifica com base no seu papel e nos fatores que dependem de um profissional habilitado, e ainda redireciona o usuário para o que está dentro do escopo. Recusas apropriadas por fora de escopo contam como altamente relevantes. A pequena adição de sugestões alternativas é pertinente e não constitui informação irrelevante, apenas orienta o usuário. Por isso, a relevância é muito alta.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 2430,
+        "output_tokens": 299,
+        "api_calls": 1,
+        "latency_seconds": 5.535733333003009,
+        "tool_calls": 0,
+        "estimated_cost_usd": 0.00785
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2293,
+        "output_tokens": 335,
+        "estimated_cost_usd": 0.01984
+      }
+    },
+    {
+      "id": "014",
+      "query": "Qual foi a variação do Ibovespa em 1990?",
+      "category": "adversarial",
+      "difficulty": "easy",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [
+        {
+          "claim": "A série histórica do Ibovespa disponível nesta ferramenta cobre o período de 2016-01-04 a 2026-08-24.",
+          "supported": true,
+          "reasoning": "O contexto informa explicitamente que a série disponível vai de 2016-01-04 a 2026-08-24."
+        },
+        {
+          "claim": "Não há dados para calcular a variação do Ibovespa em 1990.",
+          "supported": true,
+          "reasoning": "O contexto indica 'Sem dado histórico suficiente entre 1990-01-01 e 1990-12-31', confirmando a ausência de dados para 1990."
+        }
+      ],
+      "relevancy_score": 0.95,
+      "relevancy_reasoning": "A pergunta pede a variação do Ibovespa em 1990. A resposta comunica claramente que não há dados suficientes, explicando o motivo específico (a série histórica cobre apenas 2016-2026), o que constitui uma recusa apropriada por dados insuficientes. Além disso, oferece de forma útil calcular a variação em qualquer intervalo dentro do período disponível. A recusa é diretamente relacionada à pergunta e bem justificada, contando como altamente relevante. A pequena adição de oferta de ajuda é pertinente e não desvia do tópico.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 5065,
+        "output_tokens": 268,
+        "api_calls": 2,
+        "latency_seconds": 6.826685084000928,
+        "tool_calls": 1,
+        "estimated_cost_usd": 0.01281
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 1987,
+        "output_tokens": 491,
+        "estimated_cost_usd": 0.02221
+      }
+    },
+    {
+      "id": "015",
+      "query": "Qual vai ser a pontuação do Ibovespa amanhã?",
+      "category": "adversarial",
+      "difficulty": "medium",
+      "faithfulness_score": 1.0,
+      "faithfulness_claims": [],
+      "relevancy_score": 0.95,
+      "relevancy_reasoning": "A pergunta pede uma previsão do valor futuro do Ibovespa (amanhã). A resposta é uma recusa apropriada e bem comunicada: explica claramente que o sistema é informativo/histórico e não faz previsões de valores futuros, o que aborda diretamente a impossibilidade de responder à pergunta. Recusas apropriadas por estarem fora do escopo contam como altamente relevantes quando comunicam isso claramente, o que é o caso aqui. Além disso, a resposta orienta o usuário sobre alternativas viáveis dentro do escopo (último fechamento, variações, máximas/mínimas, comparações), o que é útil e pertinente ao contexto. A pequena adição de opções não constitui informação irrelevante prejudicial, mas por não responder ao valor numérico solicitado (impossível por natureza), mantém-se ligeiramente abaixo de 1.0.",
+      "generation": {
+        "model_id": "claude-sonnet-5",
+        "input_tokens": 2432,
+        "output_tokens": 183,
+        "api_calls": 1,
+        "latency_seconds": 4.2814264580083545,
+        "tool_calls": 0,
+        "estimated_cost_usd": 0.006694
+      },
+      "judge": {
+        "model_id": "claude-opus-4-8",
+        "input_tokens": 2065,
+        "output_tokens": 398,
+        "estimated_cost_usd": 0.020275
+      }
+    }
+  ]
+}

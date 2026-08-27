@@ -1,0 +1,32 @@
+{
+  "established_at": "2026-08-27",
+  "note": "Baseline calibrated from 2 real runs (n=2) after the Sonnet revert on 2026-08-24. A third calibration run was attempted but blocked by an Anthropic API billing/credit limit (see docs/evaluation/regression.md). Recalibrate this file once at least 5 runs are available for a statistically meaningful stdev — treat the current tolerance as a conservative starting point, not a final number.",
+  "based_on_runs": [
+    "results/2026-08-27T144306_489140+0000.json",
+    "results/2026-08-27T145346_606757+0000.json"
+  ],
+  "generator_model": "claude-sonnet-5",
+  "judge_model": "claude-opus-4-8",
+  "faithfulness": {
+    "mean": 0.922,
+    "stdev": 0.0184,
+    "n": 2,
+    "observed_values": [0.909, 0.935]
+  },
+  "relevancy": {
+    "mean": 0.975,
+    "stdev": 0.0028,
+    "n": 2,
+    "observed_values": [0.973, 0.977]
+  },
+  "hard_floor": {
+    "faithfulness": 0.85,
+    "relevancy": 0.80,
+    "source": "Pre-existing project gate, .specify/memory/constitution.md — not chosen by this calibration"
+  },
+  "tolerance": {
+    "faithfulness": 0.05,
+    "relevancy": 0.03,
+    "method": "baseline_mean - tolerance, floored by hard_floor. Tolerance set conservatively above ~3x the n=2 empirical stdev (faithfulness: 3x0.0184=0.055, rounded down slightly; relevancy: 3x0.0028=0.0085, widened to 0.03 to avoid over-fitting a 2-sample stdev). Both values are far below the ~0.14-0.17 drop observed in the actual Haiku regression, so the check would have caught that regression with wide margin while tolerating normal judge-to-judge noise."
+  }
+}
