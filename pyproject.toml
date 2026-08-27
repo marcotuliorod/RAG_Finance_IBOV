@@ -23,6 +23,7 @@ dev = [
     "respx>=0.21",
     "time-machine>=2.14",
     "ruff>=0.4",
+    "pip-audit>=2.10",
 ]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
