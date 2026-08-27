@@ -24,8 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-        with:
-          python-version: "3.12"
       - run: uv sync --all-extras
       - run: uv run ruff check src tests scripts
 
@@ -34,8 +32,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-        with:
-          python-version: "3.12"
       - run: uv sync --all-extras
       # Não bloqueante ainda: baseline de 18 erros pré-existentes medida em
       # 2026-08-27 (ver docs/audit/TECHNICAL_AUDIT.md F-18 e o comentário em
@@ -50,8 +46,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-        with:
-          python-version: "3.12"
       - run: uv sync --all-extras
       - run: uv run pytest -q
 
@@ -72,8 +66,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-        with:
-          python-version: "3.12"
       - run: uv sync --all-extras
       # Prova, no próprio CI, que scripts/apply_migrations.py roda contra
       # um Postgres genuinamente novo sem falhar (ver docs/audit/
@@ -105,8 +97,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-        with:
-          python-version: "3.12"
       - run: uv sync --all-extras
       - run: uv run python scripts/apply_migrations.py
       - run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/seed/dev_seed.sql
