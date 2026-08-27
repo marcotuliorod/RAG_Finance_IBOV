@@ -17,7 +17,8 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 
 ## Current phase
 
-**Session 7 — Deployment + System Design + ADRs.** Status: complete.
+**Session 8 — README + Portfolio Case + Final Validation.** Status: complete. **This is the final
+session of the 8-session flagship-project transformation.**
 
 ## Completed
 
@@ -210,9 +211,39 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 - [x] Updated `docs/architecture/deployment.md`'s cross-references and confirmed consistency with
       the new `docs/deployment/strategy.md`.
 
+### Session 8 — README + Portfolio Case + Final Validation
+
+- [x] Asked the user's language preference for the README (bilingual chosen) rather than assuming —
+      a real audience/positioning decision, not a technical correctness question.
+- [x] Rewrote `README.md` (English) and added `README.pt-BR.md` (Portuguese) — full 20-section
+      technical landing page per the original brief's structure, fixing both stale claims the
+      Session 1 audit found and correcting the "RAG" framing per ADR-002. Real, current numbers used
+      throughout (166 tests, real evaluation scores, real cost figures) — verified via
+      `pytest --collect-only` immediately before writing, not recalled from memory.
+- [x] Wrote `docs/portfolio/` (portfolio-summary.md, technical-highlights.md, interview-guide.md) —
+      used "production-oriented" rather than "production-ready" per the brief's own instruction,
+      since production-readiness genuinely isn't provable here (no real deployment, no auth).
+- [x] Wrote `CHANGELOG.md` covering all 8 sessions.
+- [x] Wrote `docs/audit/FINAL_ENGINEERING_REPORT.md` — before/after, architecture, testing,
+      evaluation, security, observability, CI/CD, deployment, remaining gaps, portfolio value.
+- [x] Final validation pass: lint (clean), `ruff format --check` (found 21 pre-existing files never
+      part of this session's work — reformatted only the 3 files this session actually authored/
+      touched, left the rest alone per the preservation rule — see `docs/audit/TECHNICAL_AUDIT.md`
+      new finding), mypy (18-error baseline unchanged, as expected), full unit suite (112 passed),
+      full integration/e2e/security suite (39 passed), the regression check against already-persisted
+      results (PASSOU, no new API cost), a fresh Docker build (succeeded), and `docker compose config`
+      validation. Did **not** re-run `docker compose up` end-to-end a third time — Session 6 already
+      verified that fully (build → up → both healthy → real data over the network) and nothing in
+      `docker-compose.yml`/`Dockerfile` changed since; re-doing it would have required disrupting the
+      currently-running local dev Postgres for no new information.
+- [x] Did **not** push to the GitHub remote or verify `ci.yml`/`eval.yml` against a real GitHub
+      Actions run — pushing is a shared-state action requiring the user's explicit go-ahead, which
+      wasn't sought mid-session; flagged as the one explicitly unverified piece in the final report
+      rather than silently left unmentioned.
+
 ## In progress
 
-- None. Session 7 scope is closed.
+- None. **All 8 sessions of the flagship-project transformation are complete.**
 
 ## Blocked
 
@@ -261,28 +292,23 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
   containerization — noted explicitly in both the compose file and `docs/architecture/deployment.md`
   rather than left as an implicit side-effect.
 
-## Next steps (Session 8 — README + Portfolio Case + Final Validation)
+## Next steps — post-project (nothing left in the planned 8-session sequence)
 
-1. **Only now** rewrite `README.md` (Phase 16 — explicitly deferred until all engineering sessions
-   were done, per the governing brief). Must fix the two staleness issues the Session 1 audit found
-   (stale test-count badge, the Haiku/Sonnet narrative describing the regression as "kept" when it
-   was actually reverted) and correct the "RAG" framing per `docs/adr/ADR-002-rag-architecture.md`.
-2. Write `docs/portfolio/` (portfolio-summary.md, technical-highlights.md, interview-guide.md) —
-   using "production-oriented" language per the brief's own instruction, not "production-ready"
-   unless genuinely provable (it mostly isn't — no real deployment exists, see ADR-008).
-3. Write `CHANGELOG.md` covering all 7 sessions' worth of changes.
-4. Write `docs/audit/FINAL_ENGINEERING_REPORT.md` — before/after, architecture, testing, evaluation,
-   security, observability, CI/CD, deployment, remaining gaps, portfolio value.
-5. Final validation pass: re-run the full test suite, lint, mypy, `pip-audit`, Docker build/up one
-   more time end-to-end, and — if feasible — actually push to GitHub and verify `ci.yml` runs for
-   real (it has only been locally simulated so far, never exercised on actual GitHub Actions
-   infrastructure — this is the one piece of Session 6's CI work that remains unverified against
-   the real platform).
-6. Remaining known gaps to state plainly in the final report (not hidden): F-11 (no rate limiting),
-   F-18 (18 mypy errors, unfixed), retrieval P@K/R@K/MRR (not computed, documented why), the n=2
-   regression baseline (needs recalibration once API budget allows), no live GitHub Actions
-   verification yet, and the API credit blocker's effect on how much fresh adversarial/LLM testing
-   was actually done in Sessions 3-4 vs. Sessions 1-2.
+The planned sequence is complete. What remains is entirely optional follow-up, not blocking the
+project's current state:
+
+1. **Push to GitHub and verify `ci.yml`/`eval.yml` against a real GitHub Actions run** — the single
+   most valuable remaining verification step, deliberately not done automatically since pushing to
+   the shared remote needs the project owner's explicit decision, not an assumption.
+2. Add Anthropic API credit to unblock: re-verifying the 15 `llm_eval` tests fresh, running the
+   3rd+ evaluation calibration run to properly firm up the regression baseline (currently n=2), and
+   any new adversarial/prompt-injection testing against the live model.
+3. If a live/public demo becomes a real priority for portfolio purposes, `docs/deployment/strategy.md`
+   Option C (a cheap VPS) is the documented, ready-to-execute path — auth and rate limiting would
+   need to be built first per that document.
+4. Optional, non-blocking cleanup: the 18-error mypy baseline, the 21 pre-existing files not
+   `ruff format`-clean (see the note added to `docs/audit/TECHNICAL_AUDIT.md` this session), and a
+   frozen-snapshot fixture for retrieval-quality metrics if that ever becomes a priority.
 
 ## Test/validation runs performed
 
@@ -315,3 +341,11 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 | 2026-08-27 | `.venv/bin/python -m mypy src --ignore-missing-imports` (Session 6, baseline measurement) | 18 errors, 7 files — documented, not fixed this session |
 | 2026-08-27 | `.venv/bin/python -c "import yaml; ..."` (Session 6, workflow YAML syntax check) | Both `ci.yml`/`eval.yml` valid YAML |
 | 2026-08-27 | `.venv/bin/python -m pytest -q` (Session 7, sanity check — docs-only session) | 112 passed, 54 deselected |
+| 2026-08-27 | `.venv/bin/python -m ruff check src tests scripts` (Session 8, final validation) | All checks passed |
+| 2026-08-27 | `.venv/bin/python -m ruff format --check src tests scripts` (Session 8) | 21 pre-existing files flagged (not this session's work — see note); the 3 files this session authored/touched were reformatted and re-verified clean |
+| 2026-08-27 | `.venv/bin/python -m mypy src --ignore-missing-imports` (Session 8, final) | 18 errors, 7 files — unchanged baseline, as expected |
+| 2026-08-27 | `.venv/bin/python -m pytest -q` (Session 8, final) | 112 passed, 54 deselected |
+| 2026-08-27 | `.venv/bin/python -m pytest -q -m integration` (Session 8, final) | 39 passed |
+| 2026-08-27 | `.venv/bin/python scripts/check_regression.py` (Session 8, no new API cost) | REGRESSION CHECK: PASSOU |
+| 2026-08-27 | `docker build -t rag-b3-app:final-check .` (Session 8, final) | Build succeeded |
+| 2026-08-27 | `docker compose config -q` (Session 8, final) | Valid |
