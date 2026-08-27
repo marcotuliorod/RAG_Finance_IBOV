@@ -16,5 +16,28 @@ services:
       timeout: 5s
       retries: 10
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Sobrescreve o DATABASE_URL do .env (que aponta para
+      # localhost:5433, válido para processos rodando no host) — dentro da
+      # rede do Docker Compose, o Postgres é alcançado pelo nome do
+      # serviço na porta interna padrão, não por localhost:5433.
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-localdev}@postgres:5432/postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      # Publicado só em 127.0.0.1 do host, não em todas as interfaces —
+      # preserva a postura "uso pessoal, sem autenticação, só localhost"
+      # descrita em docs/security/APP_SECURITY.md mesmo estando
+      # containerizado.
+      - "127.0.0.1:8000:8000"
+
 volumes:
   pgdata:
