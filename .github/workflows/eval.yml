@@ -1,0 +1,57 @@
+name: RAG Evaluation & Regression Gate
+
+# Runs the real 15-case golden dataset against the live Anthropic API
+# (generator + LLM judge) and checks the result against the calibrated
+# baseline (docs/evaluation/baseline.json). This is NOT wired into ci.yml's
+# per-push/PR pipeline: each run costs real money (~US$0.74, measured in
+# docs/evaluation/baseline.md) and takes minutes, not seconds. Deliberate
+# trade-off: manual trigger for on-demand checks (e.g. before/after a model
+# or prompt change) plus a weekly schedule to catch silent drift, rather
+# than gating every commit.
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 12 * * 1" # every Monday, 12:00 UTC
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: localdev
+        ports:
+          - "5433:5432"
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:localdev@localhost:5433/postgres
+      # Secret real do repositório — precisa estar configurado em
+      # Settings > Secrets and variables > Actions para este workflow
+      # funcionar. Sem ele, o job falha na criação do client Anthropic, não
+      # silenciosamente.
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      HG_BRASIL_API_KEY: dummy-not-used-by-eval
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.12"
+      - run: uv sync --all-extras
+      - run: uv run python scripts/apply_migrations.py
+      # db/seed/dev_seed.sql: snapshot real da série do Ibovespa + itens
+      # CVM (mesmo seed usado em ci.yml) — o golden dataset verifica
+      # valores históricos reais (ex. desempenho de 2023), então o eval só
+      # faz sentido contra esses dados reais, não um banco vazio.
+      - run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/seed/dev_seed.sql
+      - run: uv run python scripts/run_eval.py
+      - run: uv run python scripts/check_regression.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results
+          path: docs/evaluation/results/*.json
