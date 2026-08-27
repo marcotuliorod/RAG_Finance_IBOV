@@ -17,7 +17,7 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 
 ## Current phase
 
-**Session 4 — Tool Calling + AI Security.** Status: complete.
+**Session 5 — Observability + Cost & Performance.** Status: complete.
 
 ## Completed
 
@@ -135,9 +135,32 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
       found"** (F-09 — tooling exists and was run; CI wiring remains Session 6).
 - [x] Updated `docs/audit/TECHNICAL_AUDIT.md` status table with all of the above.
 
+### Session 5 — Observability + Cost & Performance
+
+- [x] Added logging to `generation/answer.py` (previously zero, the last gap under F-06): `DEBUG`
+      per tool call, `WARNING` when a tool returns `{"error": ...}`, `WARNING` at
+      `GenerationLoopExceededError` (logged at the point of failure, visible to any caller — web
+      app, `scripts/run_eval.py`, future batch scripts — not just the web layer).
+- [x] Added `tests/unit/test_generation_answer.py::test_answer_question_logs_warning_when_tool_returns_error`
+      and `..._logs_warning_when_loop_exceeded` — proves the logging actually fires, using `caplog`,
+      not just that the code exists.
+- [x] Wrote `docs/observability.md` — honest inventory of what's monitored (API/generation/ingestion/
+      evaluation layers) vs. what Phase 9 originally asked for (live dashboards, retrieval-specific
+      latency, LLM retry/fallback tracking) and explicitly why those weren't built (single-user,
+      low-volume scale doesn't justify the infrastructure yet).
+- [x] Wrote `docs/cost-performance.md` — real per-request cost (~US$0.013, derived from actual
+      measured tokens, not guessed) and a latency breakdown from the 30 real requests across the 2
+      Session 2/3 eval runs. Concluded no optimization is currently justified — the data doesn't
+      show a real bottleneck (context size, retrieval latency, and redundant calls were all checked
+      against the real traces and ruled out).
+- [x] Updated `docs/PRD.md` §13's previously-placeholder cost line ("A estimar") with the real
+      measured figure and a link to `docs/cost-performance.md`.
+- [x] Updated `docs/audit/TECHNICAL_AUDIT.md`: F-05 and F-06 now fully Resolved; added F-19 as a
+      still-open, deliberately-not-addressed item (dashboard doesn't cover chat/generation traffic).
+
 ## In progress
 
-- None. Session 4 scope is closed.
+- None. Session 5 scope is closed.
 
 ## Blocked
 
@@ -173,27 +196,29 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
   and analysis of the existing golden-dataset adversarial results were done. This is reported as an
   honest scope limitation in `docs/security/AI_SECURITY.md`, not glossed over.
 
-## Next steps (Session 5 — Observability + Cost & Performance)
+## Next steps (Session 6 — Testing + Docker + CI/CD)
 
-1. Still blocked on real LLM calls (API credit) — Session 5's scope (observability, cost/latency
-   measurement) is mostly non-API-cost work: it's about instrumenting and documenting what Session
-   2 already started capturing (`AnswerResult` tokens/latency, `/api/ask` logging), not making new
-   LLM calls.
-2. Write `docs/observability.md` — what's monitored today (API request logging, ingestion audit
-   trail, the eval/regression artifacts) vs. what Phase 9 originally asked for (live metrics
-   dashboards, retrieval-specific latency, LLM failure/retry/fallback tracking) — most of the latter
-   still doesn't exist and should be honestly scoped, not overstated.
-3. Consider whether the existing per-request log line (Session 2) is sufficient "observability" or
-   whether a lightweight metrics store (e.g., writing request summaries to a table, similar to
-   `ingestion_job_run`) is worth adding — weigh against the project's actual single-user scale
-   before building something unused.
-4. Cost & performance (Phase 10): the pieces already exist (token counts, latency, cost estimation
-   in `docs/evaluation/methodology.md`/`pricing.py`) — this session's job is to extend that from
-   "eval-run-only" to "every real chat request," and to write up bottleneck analysis using the real
-   numbers already measured (mean ~7.25s generation latency, ~5,100 input tokens/request) rather
-   than guessing at bottlenecks.
-5. Revisit whether `generation/answer.py`/`tools.py` need actual `logging` calls (not just the
-   web-layer summary log added in Session 2) — the audit's F-06 is only partially resolved.
+1. Organize/confirm test directory structure against the roadmap's ask (`tests/unit/`,
+   `tests/integration/`, `tests/evaluation/`, `tests/security/` — already created Session 4 —
+   `tests/e2e/`). Current reality: evaluation logic lives in `tests/integration/test_golden_dataset*.py`,
+   not a separate `tests/evaluation/` — decide whether to add a thin `tests/evaluation/README.md`
+   pointing there (preserving existing structure) rather than physically moving files, consistent
+   with the project's preservation rule.
+2. Write a `Dockerfile` for the FastAPI app (F-07 — currently only Postgres is containerized) and
+   extend `docker-compose.yml` with an `app` service, so `docker compose up` actually starts the
+   whole application, not just the database.
+3. Create `.github/workflows/` — the project has **zero CI today** (F-01). Minimum pipeline: lint
+   (ruff) → type check (none configured yet — F-18, decide whether to add mypy/pyright this session
+   or defer) → unit tests → integration tests (needs a Postgres service in the workflow) → security
+   tests (`tests/security/`, no API cost) → Docker build. Explicitly do NOT wire the `llm_eval`
+   suite or `scripts/run_eval.py`/`check_regression.py` into every-PR CI given the real API cost per
+   run (~US$0.74) — that's more appropriately a scheduled/manual gate, not a per-commit one; decide
+   and document the trade-off rather than silently wiring it in or silently omitting it.
+4. Migrations idempotency (F-12): `scripts/apply_migrations.py` has no tracking table — needed for
+   a CI job that runs migrations against a fresh Postgres container repeatedly.
+5. Still blocked on new real LLM API calls (credit) — CI/Docker/testing-infra work in this session
+   doesn't need them; note clearly in the CI design where `llm_eval`/`run_eval.py` would plug in
+   once credit is available, rather than leaving it unaddressed.
 
 ## Test/validation runs performed
 
@@ -214,3 +239,5 @@ Living tracker across the 8-session execution plan. Updated at the end of each s
 | 2026-08-27 | `.venv/bin/python -m pytest -q` (Session 4, after tool/security fixes) | 110 passed, 52 deselected |
 | 2026-08-27 | `.venv/bin/python -m ruff check src tests scripts` (Session 4) | All checks passed |
 | 2026-08-27 | `.venv/bin/pip-audit --desc` (Session 4) | No known vulnerabilities found |
+| 2026-08-27 | `.venv/bin/python -m pytest -q` (Session 5, after observability logging changes) | 112 passed, 52 deselected |
+| 2026-08-27 | `.venv/bin/python -m ruff check src tests scripts` (Session 5) | All checks passed |
